@@ -1,13 +1,13 @@
 ---
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 # image will be published to ghcr.io/<user>/<name>
-name: template
+name: sixpounder-silverblue
 # description will be included in the image's metadata
 description: This is my personal OS image.
 
 # the base image to build on top of (FROM) and the version tag to use
-base-image: ghcr.io/ublue-os/silverblue-main
-image-version: 42 # latest is also supported if you want new updates ASAP
+base-image: ghcr.io/blue-build/base-images/fedora-silverblue-nvidia-open
+image-version: latest # latest is also supported if you want new updates ASAP
 
 # module configuration, executed in order
 # you can include multiple instances of the same module
@@ -21,10 +21,18 @@ modules:
     repos:
       copr:
         - atim/starship
+      yum:
+        1password:
+          baseurl: https://downloads.1password.com/linux/rpm/stable/$basearch
+          enabled: true
+          gpgcheck: true
+          repo_gpgcheck: true
+          gpgkey: https://downloads.1password.com/linux/keys/1password.asc
     install:
       packages:
         - micro
         - starship
+        - 1password
     remove:
       packages:
         # example: removing firefox (in favor of the flatpak)

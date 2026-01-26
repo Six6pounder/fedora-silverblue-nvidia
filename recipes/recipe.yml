@@ -37,13 +37,18 @@ modules:
 
   - type: default-flatpaks
     configurations:
-      - notify: true # Send notification after install/uninstall is finished (true/false)
-        scope: system
-        # If no repo information is specified, Flathub will be used by default
-        install: # system flatpaks we want all users to have and not remove
-          # - org.mozilla.firefox
-          - org.gnome.Loupe
-          - com.valvesoftware.Steam
-      - scope: user # Also add Flathub user repo, but no user packages
+    - scope: user
+      repo:
+        # you can override the title to make inclusion of both system and user repos clearer
+        title: Flathub (user)
+    - notify: true
+      scope: system
+      repo:
+        title: Flathub (system)
+      install: # system flatpaks we want all users to have and not remove
+        - com.github.tchx84.Flatseal
+        - com.valvesoftware.Steam
+        - io.missioncenter.MissionCenter
+        - org.gnome.Loupe
 
   - type: signing # this sets up the proper policy & signing files for signed images to work fully

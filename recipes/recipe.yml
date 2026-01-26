@@ -15,7 +15,7 @@ modules:
   - type: files
     files:
       - source: system
-        destination: / # copies files/system/* (* means everything inside it) into your image's root folder /
+        destination: /
 
   - type: dnf
     repos:
@@ -28,27 +28,14 @@ modules:
         - micro
         - starship
         - 1password
-    remove:
-      packages:
-        # example: removing firefox (in favor of the flatpak)
-        # "firefox" is the main package, "firefox-langpacks" is a dependency
-        # - firefox
-        # - firefox-langpacks # also remove firefox dependency (not required for all packages, this is a special case)
 
   - type: default-flatpaks
     configurations:
-    - scope: user
-      repo:
-        # you can override the title to make inclusion of both system and user repos clearer
-        title: Flathub (user)
-    - notify: true
-      scope: system
-      repo:
-        title: Flathub (system)
-      install: # system flatpaks we want all users to have and not remove
-        - com.github.tchx84.Flatseal
-        - com.valvesoftware.Steam
-        - io.missioncenter.MissionCenter
-        - org.gnome.Loupe
+      - scope: user
+        install:
+          - com.github.tchx84.Flatseal
+          - com.valvesoftware.Steam
+          - io.missioncenter.MissionCenter
+          - org.gnome.Loupe
 
-  - type: signing # this sets up the proper policy & signing files for signed images to work fully
+  - type: signing

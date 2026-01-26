@@ -19,6 +19,8 @@ modules:
 
   - type: dnf
     repos:
+      files:
+        - 1password.repo
       copr:
         - atim/starship
       keys:

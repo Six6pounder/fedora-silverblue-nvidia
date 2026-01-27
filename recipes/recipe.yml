@@ -18,6 +18,7 @@ modules:
         destination: /
 
   - type: dnf
+    cleanup: true # clean up added repos after module is done
     repos:
       files:
         - 1password.repo
@@ -32,9 +33,7 @@ modules:
     install:
       skip-unavailable: true # skip unavailable packages
       packages:
-        - repo: brave-browser
-          packages:
-          - brave-browser
+        - brave-browser
         - micro
         - starship
         - 1password

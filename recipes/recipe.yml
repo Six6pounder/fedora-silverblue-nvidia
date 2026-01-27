@@ -21,15 +21,24 @@ modules:
     repos:
       files:
         - 1password.repo
+        - nordvpn.repo
+        - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
       copr:
         - atim/starship
       keys:
         - https://downloads.1password.com/linux/keys/1password.asc
+        - https://repo.nordvpn.com/gpg/nordvpn_public.asc
+        - https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
     install:
+      skip-unavailable: true # skip unavailable packages
       packages:
+        - repo: brave-browser
+          packages:
+          - brave-browser
         - micro
         - starship
         - 1password
+        - nordvpn
 
   - type: default-flatpaks
     configurations:
@@ -40,4 +49,23 @@ modules:
           - io.missioncenter.MissionCenter
           - org.gnome.Loupe
 
+  - type: gnome-extensions
+    install:
+    - 3193 # Blur my Shell
+    - 615 # AppIndicator and KStatusNotifierItem Support
+    - 307 # Dash-to-Dock
+
+  - type: fonts
+    fonts:
+      nerd-fonts:
+        - FiraCode # don't add spaces or "Nerd Font" suffix
+        - Hack
+        - SourceCodePro
+        - Terminus
+        - JetBrainsMono
+        - NerdFontsSymbolsOnly
+      google-fonts:
+        - Roboto
+        - Open Sans
+        - Inter
   - type: signing

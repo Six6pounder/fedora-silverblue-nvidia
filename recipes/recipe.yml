@@ -20,14 +20,12 @@ modules:
   - type: dnf
     repos:
       files:
-        - 1password.repo
         - nordvpn.repo
         - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
       copr:
         - atim/starship
         - codifryed/CoolerControl
       keys:
-        - https://downloads.1password.com/linux/keys/1password.asc
         - https://repo.nordvpn.com/gpg/nordvpn_public.asc
         - https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
     install:
@@ -39,8 +37,11 @@ modules:
         - brave-browser
         - micro
         - starship
-        - 1password
         - nordvpn
+
+  - type: bling
+    install:
+      - 1password
 
   - type: default-flatpaks
     configurations:
@@ -71,4 +72,11 @@ modules:
         - Roboto
         - Open Sans
         - Inter
+
+  - type: systemd
+    system:
+      enabled:
+        - nordvpnd
+        - coolercontrold
+
   - type: signing

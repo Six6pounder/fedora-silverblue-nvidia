@@ -42,6 +42,7 @@ modules:
   - type: bling
     install:
       - 1password
+      - gnome-vrr
 
   - type: default-flatpaks
     configurations:
@@ -54,10 +55,10 @@ modules:
 
   - type: gnome-extensions
     install:
-    - 3193 # Blur my Shell
-    - 615 # AppIndicator and KStatusNotifierItem Support
-    - 307 # Dash-to-Dock
-    - 517 # Caffeine
+      - 3193 # Blur my Shell
+      - 615 # AppIndicator and KStatusNotifierItem Support
+      - 307 # Dash-to-Dock
+      - 517 # Caffeine
 
   - type: fonts
     fonts:

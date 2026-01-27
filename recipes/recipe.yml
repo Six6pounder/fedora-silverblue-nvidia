@@ -45,12 +45,14 @@ modules:
 
   - type: default-flatpaks
     configurations:
-      - scope: user
+      - scope: system
         install:
           - com.github.tchx84.Flatseal
           - com.valvesoftware.Steam
           - io.missioncenter.MissionCenter
           - org.gnome.Loupe
+          - eu.betterbird.Betterbird
+          - com.mattjakeman.ExtensionManager
 
   - type: gnome-extensions
     install:

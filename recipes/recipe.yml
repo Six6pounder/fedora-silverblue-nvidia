@@ -21,6 +21,7 @@ modules:
     repos:
       files:
         - nordvpn.repo
+        - antigravity.repo
         - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
       copr:
         - atim/starship
@@ -38,6 +39,7 @@ modules:
         - micro
         - starship
         - nordvpn
+        - antigravity
 
   - type: bling
     install:

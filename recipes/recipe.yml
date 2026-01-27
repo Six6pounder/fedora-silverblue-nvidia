@@ -32,6 +32,7 @@ modules:
     install:
       skip-unavailable: true # skip unavailable packages
       packages:
+        - podman-docker
         - liquidctl
         - coolercontrol
         - coolercontrold
@@ -84,5 +85,8 @@ modules:
       enabled:
         - nordvpnd
         - coolercontrold
+    user:
+      enabled:
+        - podman.socket
 
   - type: signing

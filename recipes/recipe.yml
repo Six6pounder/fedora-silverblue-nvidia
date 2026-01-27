@@ -18,7 +18,6 @@ modules:
         destination: /
 
   - type: dnf
-    cleanup: true # clean up added repos after module is done
     repos:
       files:
         - 1password.repo

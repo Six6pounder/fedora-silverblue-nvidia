@@ -51,8 +51,9 @@ modules:
           - com.valvesoftware.Steam
           - io.missioncenter.MissionCenter
           - org.gnome.Loupe
-          - eu.betterbird.Betterbird
+          - org.mozilla.Thunderbird
           - com.mattjakeman.ExtensionManager
+          - com.vysp3r.ProtonPlus
 
   - type: gnome-extensions
     install:

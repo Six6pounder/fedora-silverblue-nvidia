@@ -25,6 +25,7 @@ modules:
         - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
       copr:
         - atim/starship
+        - codifryed/CoolerControl
       keys:
         - https://downloads.1password.com/linux/keys/1password.asc
         - https://repo.nordvpn.com/gpg/nordvpn_public.asc
@@ -32,6 +33,9 @@ modules:
     install:
       skip-unavailable: true # skip unavailable packages
       packages:
+        - liquidctl
+        - coolercontrol
+        - coolercontrold
         - brave-browser
         - micro
         - starship
@@ -52,6 +56,7 @@ modules:
     - 3193 # Blur my Shell
     - 615 # AppIndicator and KStatusNotifierItem Support
     - 307 # Dash-to-Dock
+    - 517 # Caffeine
 
   - type: fonts
     fonts:

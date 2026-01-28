@@ -33,6 +33,7 @@ modules:
       skip-unavailable: true # skip unavailable packages
       packages:
         - podman-docker
+        - podman-compose
         - liquidctl
         - coolercontrol
         - coolercontrold

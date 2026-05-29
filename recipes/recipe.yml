@@ -1,12 +1,12 @@
 ---
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 # image will be published to ghcr.io/<user>/<name>
-name: sixpounder-silverblue
+name: sixpounder-origami
 # description will be included in the image's metadata
-description: This is my personal OS image.
+description: A custom image for my personal use, built with Origami. It includes various tools and configurations for my workflow, such as NordVPN, Brave Browser, and Podman. The image is designed to be lightweight and efficient, while still providing all the necessary features for my daily tasks.
 
 # the base image to build on top of (FROM) and the version tag to use
-base-image: ghcr.io/blue-build/base-images/fedora-silverblue-nvidia-open
+base-image: registry.gitlab.com/origami-linux/images/origami-nvidia
 image-version: latest # latest is also supported if you want new updates ASAP
 
 # module configuration, executed in order
@@ -24,7 +24,6 @@ modules:
         - antigravity.repo
         - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
       copr:
-        - atim/starship
         - codifryed/CoolerControl
       keys:
         - https://repo.nordvpn.com/gpg/nordvpn_public.asc
@@ -38,7 +37,6 @@ modules:
         - coolercontrol
         - coolercontrold
         - brave-browser
-        - starship
         - nordvpn
         - antigravity
 
@@ -55,26 +53,12 @@ modules:
           - io.missioncenter.MissionCenter
           - org.gnome.Loupe
           - org.mozilla.Thunderbird
-          - com.mattjakeman.ExtensionManager
           - com.vysp3r.ProtonPlus
-
-  - type: gnome-extensions
-    install:
-      - 3193 # Blur my Shell
-      - 615 # AppIndicator and KStatusNotifierItem Support
-      - 307 # Dash-to-Dock
-      - 517 # Caffeine
-      - 4691 # Pip On Top
 
   - type: fonts
     fonts:
       nerd-fonts:
         - FiraCode # don't add spaces or "Nerd Font" suffix
-        - Hack
-        - SourceCodePro
-        - Terminus
-        - JetBrainsMono
-        - NerdFontsSymbolsOnly
       google-fonts:
         - Roboto
         - Open Sans

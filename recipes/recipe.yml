@@ -23,8 +23,7 @@ modules:
         - nordvpn.repo
         - antigravity.repo
         - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
-      copr:
-        - codifryed/CoolerControl
+        - https://copr.fedorainfracloud.org/coprs/codifryed/CoolerControl/repo/fedora-%OS_VERSION%/codifryed-CoolerControl-fedora-%OS_VERSION%.repo
       keys:
         - https://repo.nordvpn.com/gpg/nordvpn_public.asc
         - https://brave-browser-rpm-release.s3.brave.com/brave-core.asc

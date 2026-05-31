@@ -28,8 +28,10 @@ modules:
         - https://repo.nordvpn.com/gpg/nordvpn_public.asc
         - https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
     install:
-      skip-unavailable: true # skip unavailable packages
+      skip-unavailable: true
       packages:
+        - policycoreutils
+        - policycoreutils-python-utils
         - podman-docker
         - podman-compose
         - liquidctl

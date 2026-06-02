@@ -14,23 +14,34 @@ set -euo pipefail
 KERNEL_VERSION="$(rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-core)"
 echo "Building VirtualBox kernel modules for ${KERNEL_VERSION}"
 
-# Install build prerequisites + VirtualBox userspace (pulls in akmod-VirtualBox).
+# Install build prerequisites + VirtualBox userspace (pulls in akmod-VirtualBox,
+# which ships the kmod source rpm under /usr/src/akmods).
 dnf5 install -y \
   "kernel-devel-${KERNEL_VERSION}" \
   akmods \
   VirtualBox
 
-# Force-compile the module set for the image kernel. The akmod %post that runs
-# during install is effectively a no-op in a build container, so do it
-# explicitly here.
-akmods --force --kernels "${KERNEL_VERSION}" --kmod VirtualBox
+# akmods/akmodsbuild refuse to run when "/" is writable (i.e. as root), and the
+# build container is root. So compile the kmod RPM as an unprivileged user, then
+# install the resulting RPM as root. The akmods package does not create a build
+# user, so make a throwaway one.
+if ! getent passwd akmodsbuild >/dev/null; then
+  useradd -r -m -d /var/lib/akmodsbuild -s /usr/sbin/nologin akmodsbuild
+fi
 
-# Fail the build loudly if the module did not actually get produced/installed.
+SRPM="$(ls /usr/src/akmods/VirtualBox-kmod-*.src.rpm | head -1)"
+OUTDIR="$(mktemp -d)"
+chown -R akmodsbuild: "${OUTDIR}"
+
+runuser -u akmodsbuild -- \
+  akmodsbuild --kernels "${KERNEL_VERSION}" --outputdir "${OUTDIR}" "${SRPM}"
+
+# Install the freshly built kmod RPM into the image.
+dnf5 install -y "${OUTDIR}"/kmod-VirtualBox-*.rpm
+rm -rf "${OUTDIR}"
+
+# Fail the build loudly if the module did not actually get installed.
 depmod -a "${KERNEL_VERSION}"
 modinfo -k "${KERNEL_VERSION}" vboxdrv >/dev/null
-
-# Drop the build-only kernel headers so they don't bloat the final image; the
-# compiled .ko files are already installed under /usr/lib/modules.
-dnf5 remove -y "kernel-devel-${KERNEL_VERSION}" || true
 
 echo "VirtualBox kernel modules built successfully for ${KERNEL_VERSION}"

@@ -1,6 +1,6 @@
-# Sixpounder Silverblue &nbsp; [![build badge](https://github.com/Six6pounder/fedora-silverblue-nvidia/actions/workflows/build.yml/badge.svg)](https://github.com/Six6pounder/fedora-silverblue-nvidia/actions/workflows/build.yml)
+# Sixpounder COSMIC &nbsp; [![build badge](https://github.com/Six6pounder/fedora-silverblue-nvidia/actions/workflows/build.yml/badge.svg)](https://github.com/Six6pounder/fedora-silverblue-nvidia/actions/workflows/build.yml)
 
-This is my personal OS image based on `fedora-silverblue-nvidia-open`. Built using [BlueBuild](https://blue-build.org/).
+This is my personal OS image based on `fedora-cosmic-nvidia-open`. Built using [BlueBuild](https://blue-build.org/).
 
 ## Installation
 
@@ -11,7 +11,7 @@ To rebase an existing atomic Fedora installation to the latest build:
 
 - First rebase to the unsigned image, to get the proper signing keys and policies installed:
   ```
-  rpm-ostree rebase ostree-unverified-registry:ghcr.io/Six6pounder/sixpounder-silverblue:latest
+  rpm-ostree rebase ostree-unverified-registry:ghcr.io/six6pounder/sixpounder-cosmic:latest
   ```
 - Reboot to complete the rebase:
   ```
@@ -19,7 +19,7 @@ To rebase an existing atomic Fedora installation to the latest build:
   ```
 - Then rebase to the signed image, like so:
   ```
-  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/Six6pounder/sixpounder-silverblue:latest
+  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/six6pounder/sixpounder-cosmic:latest
   ```
 - Reboot again to complete the installation
   ```
@@ -37,5 +37,5 @@ If build on Fedora Atomic, you can generate an offline ISO with the instructions
 These images are signed with [Sigstore](https://www.sigstore.dev/)'s [cosign](https://github.com/sigstore/cosign). You can verify the signature by downloading the `cosign.pub` file from this repo and running the following command:
 
 ```bash
-cosign verify --key cosign.pub ghcr.io/Six6pounder/sixpounder-silverblue
+cosign verify --key cosign.pub ghcr.io/six6pounder/sixpounder-cosmic
 ```

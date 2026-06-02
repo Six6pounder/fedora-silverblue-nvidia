@@ -6,6 +6,14 @@
 # modules) and VirtualBox is not part of the prebuilt ublue-os/akmods set, so we
 # compile it ourselves here. RPMFusion (free) is enabled by the dnf module
 # earlier in the recipe.
+#
+# The tricky part: akmod-VirtualBox's %post scriptlet runs `akmods` as root, and
+# akmods/akmodsbuild refuse to run when "/" is writable (i.e. as root). In the
+# build container that scriptlet fails and aborts the whole dnf transaction. So
+# we never install akmod-VirtualBox at all. Instead we extract its kmod source
+# rpm, compile it as an unprivileged user, install the resulting kmod-VirtualBox
+# package, and only then install the VirtualBox userspace (whose kernel-module
+# dependency is now already satisfied, so akmod-VirtualBox is not pulled in).
 
 set -euo pipefail
 
@@ -14,31 +22,37 @@ set -euo pipefail
 KERNEL_VERSION="$(rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-core)"
 echo "Building VirtualBox kernel modules for ${KERNEL_VERSION}"
 
-# Install build prerequisites + VirtualBox userspace (pulls in akmod-VirtualBox,
-# which ships the kmod source rpm under /usr/src/akmods).
+# Build prerequisites. VirtualBox-kmodsrc carries the actual module source that
+# the kmod src.rpm BuildRequires; none of these pull in akmod-VirtualBox.
 dnf5 install -y \
   "kernel-devel-${KERNEL_VERSION}" \
   akmods \
-  VirtualBox
+  cpio \
+  VirtualBox-kmodsrc
 
-# akmods/akmodsbuild refuse to run when "/" is writable (i.e. as root), and the
-# build container is root. So compile the kmod RPM as an unprivileged user, then
-# install the resulting RPM as root. The akmods package does not create a build
-# user, so make a throwaway one.
+# Fetch akmod-VirtualBox and extract only its kmod source rpm, without
+# installing the package (which would trigger the failing %post).
+WORKDIR="$(mktemp -d)"
+( cd "${WORKDIR}" && dnf5 download akmod-VirtualBox && rpm2cpio akmod-VirtualBox-*.rpm | cpio -idm )
+SRPM="$(ls "${WORKDIR}"/usr/src/akmods/VirtualBox-kmod-*.src.rpm | head -1)"
+
+# Compile the kmod as an unprivileged user (the akmods package creates no build
+# user, so make a throwaway one). The output dir must be owned by that user.
 if ! getent passwd akmodsbuild >/dev/null; then
   useradd -r -m -d /var/lib/akmodsbuild -s /usr/sbin/nologin akmodsbuild
 fi
-
-SRPM="$(ls /usr/src/akmods/VirtualBox-kmod-*.src.rpm | head -1)"
 OUTDIR="$(mktemp -d)"
+cp "${SRPM}" "${OUTDIR}/"
 chown -R akmodsbuild: "${OUTDIR}"
 
 runuser -u akmodsbuild -- \
-  akmodsbuild --kernels "${KERNEL_VERSION}" --outputdir "${OUTDIR}" "${SRPM}"
+  akmodsbuild --kernels "${KERNEL_VERSION}" --outputdir "${OUTDIR}" \
+  "${OUTDIR}/$(basename "${SRPM}")"
 
-# Install the freshly built kmod RPM into the image.
+# Install the freshly built kmod, then the VirtualBox userspace.
 dnf5 install -y "${OUTDIR}"/kmod-VirtualBox-*.rpm
-rm -rf "${OUTDIR}"
+dnf5 install -y --setopt=install_weak_deps=False VirtualBox
+rm -rf "${WORKDIR}" "${OUTDIR}"
 
 # Fail the build loudly if the module did not actually get installed.
 depmod -a "${KERNEL_VERSION}"

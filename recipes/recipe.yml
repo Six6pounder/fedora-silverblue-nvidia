@@ -1,12 +1,12 @@
 ---
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 # image will be published to ghcr.io/<user>/<name>
-name: sixpounder-origami
+name: sixpounder-cosmic
 # description will be included in the image's metadata
-description: A custom image for my personal use, built with Origami. It includes various tools and configurations for my workflow, such as NordVPN, Brave Browser, and Podman. The image is designed to be lightweight and efficient, while still providing all the necessary features for my daily tasks.
+description: A custom Fedora COSMIC atomic image for my personal use, with NVIDIA (open kernel modules) drivers baked in. It includes various tools and configurations for my workflow, such as NordVPN, Brave Browser, and Podman. The image is designed to be lightweight and efficient, while still providing all the necessary features for my daily tasks.
 
 # the base image to build on top of (FROM) and the version tag to use
-base-image: registry.gitlab.com/origami-linux/images/origami-nvidia
+base-image: ghcr.io/blue-build/base-images/fedora-cosmic-nvidia-open
 image-version: latest # latest is also supported if you want new updates ASAP
 
 # module configuration, executed in order

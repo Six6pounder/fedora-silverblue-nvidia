@@ -40,7 +40,6 @@ modules:
         - coolercontrold
         - brave-browser
         - nordvpn
-        - mpv-devel
         # Flutter Linux desktop build toolchain
         - clang
         - cmake

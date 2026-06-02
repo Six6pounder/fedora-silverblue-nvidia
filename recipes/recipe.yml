@@ -21,7 +21,6 @@ modules:
     repos:
       files:
         - nordvpn.repo
-        - antigravity.repo
         - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
         - https://copr.fedorainfracloud.org/coprs/codifryed/CoolerControl/repo/fedora-%OS_VERSION%/codifryed-CoolerControl-fedora-%OS_VERSION%.repo
       keys:
@@ -41,7 +40,6 @@ modules:
         - coolercontrold
         - brave-browser
         - nordvpn
-        - antigravity
 
   # VirtualBox has no official Flatpak (it needs host kernel modules) and is not
   # in the prebuilt ublue akmods set, so compile vboxdrv against this image's
@@ -64,6 +62,7 @@ modules:
           - io.missioncenter.MissionCenter
           - org.gnome.Loupe
           - org.mozilla.thunderbird_esr
+          - dev.zed.Zed
           - com.vysp3r.ProtonPlus
 
   - type: fonts

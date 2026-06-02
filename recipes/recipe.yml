@@ -27,6 +27,8 @@ modules:
       keys:
         - https://repo.nordvpn.com/gpg/nordvpn_public.asc
         - https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
+      # rpmfusion-free provides the VirtualBox userspace + akmod-VirtualBox
+      nonfree: rpmfusion
     install:
       skip-unavailable: true
       packages:
@@ -41,6 +43,14 @@ modules:
         - nordvpn
         - antigravity
 
+  # VirtualBox has no official Flatpak (it needs host kernel modules) and is not
+  # in the prebuilt ublue akmods set, so compile vboxdrv against this image's
+  # kernel at build time and bake it in. Runs after the dnf module so rpmfusion
+  # is already enabled.
+  - type: script
+    scripts:
+      - build-virtualbox.sh
+
   - type: bling
     install:
       - 1password
@@ -53,7 +63,7 @@ modules:
           - com.valvesoftware.Steam
           - io.missioncenter.MissionCenter
           - org.gnome.Loupe
-          - org.mozilla.Thunderbird
+          - org.mozilla.thunderbird_esr
           - com.vysp3r.ProtonPlus
 
   - type: fonts

@@ -40,6 +40,13 @@ modules:
         - coolercontrold
         - brave-browser
         - nordvpn
+        # Flutter Linux desktop build toolchain
+        - clang
+        - cmake
+        - ninja-build
+        - pkgconf-pkg-config
+        - gtk3-devel
+        - xz-devel
 
   # VirtualBox has no official Flatpak (it needs host kernel modules) and is not
   # in the prebuilt ublue akmods set, so compile vboxdrv against this image's

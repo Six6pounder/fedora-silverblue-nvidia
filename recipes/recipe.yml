@@ -63,6 +63,7 @@ modules:
           - org.gnome.Loupe
           - org.mozilla.thunderbird_esr
           - dev.zed.Zed
+          - dev.vencord.Vesktop
           - com.vysp3r.ProtonPlus
 
   - type: fonts

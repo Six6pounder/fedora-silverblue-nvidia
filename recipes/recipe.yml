@@ -40,6 +40,7 @@ modules:
         - coolercontrold
         - brave-browser
         - nordvpn
+        - mpv-devel
         # Flutter Linux desktop build toolchain
         - clang
         - cmake
@@ -71,6 +72,7 @@ modules:
           - org.mozilla.thunderbird_esr
           - dev.zed.Zed
           - dev.vencord.Vesktop
+          - com.github.IsmaelMartinez.teams_for_linux
           - com.vysp3r.ProtonPlus
 
   - type: fonts

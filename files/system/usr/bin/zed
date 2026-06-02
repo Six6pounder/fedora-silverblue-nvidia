@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# CLI launcher for the Zed flatpak (dev.zed.Zed) so `zed .` / `zed file` behave
+# like `code .`. The flatpak sandbox does not inherit the shell's working
+# directory, so resolve path-like arguments to absolute paths before handing
+# them off. Options (anything starting with `-`) are passed through untouched.
+# Host filesystem access is granted via /etc/flatpak/overrides/dev.zed.Zed.
+
+set -euo pipefail
+
+args=()
+for a in "$@"; do
+  case "$a" in
+    -*) args+=("$a") ;;
+    *)  args+=("$(realpath -m -- "$a")") ;;
+  esac
+done
+
+exec flatpak run dev.zed.Zed "${args[@]}"

@@ -78,6 +78,7 @@ modules:
           - dev.vencord.Vesktop
           - com.github.IsmaelMartinez.teams_for_linux
           - com.vysp3r.ProtonPlus
+          - com.usebottles.bottles
 
   - type: fonts
     fonts:

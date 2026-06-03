@@ -32,6 +32,7 @@ modules:
       skip-unavailable: true
       packages:
         - fish
+        - zoxide
         - policycoreutils
         - policycoreutils-python-utils
         - podman-docker

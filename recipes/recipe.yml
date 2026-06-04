@@ -103,6 +103,7 @@ modules:
     user:
       enabled:
         - podman.socket
-        - sunshine.service
+        # real unit name; RPM only aliases it to sunshine.service once enabled
+        - app-dev.lizardbyte.app.Sunshine.service
 
   - type: signing

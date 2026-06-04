@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>Sunshine</short>
+  <description>Sunshine game-stream host (Moonlight clients). HTTPS/HTTP/Web UI/RTSP control ports plus the video/control/audio/mic UDP streams.</description>
+  <port protocol="tcp" port="47984"/> <!-- HTTPS -->
+  <port protocol="tcp" port="47989"/> <!-- HTTP -->
+  <port protocol="tcp" port="47990"/> <!-- Web UI -->
+  <port protocol="tcp" port="48010"/> <!-- RTSP -->
+  <port protocol="udp" port="47998"/> <!-- Video -->
+  <port protocol="udp" port="47999"/> <!-- Control -->
+  <port protocol="udp" port="48000"/> <!-- Audio -->
+  <port protocol="udp" port="48002"/> <!-- Mic -->
+</service>

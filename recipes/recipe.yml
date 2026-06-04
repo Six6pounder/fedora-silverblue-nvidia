@@ -67,6 +67,12 @@ modules:
     scripts:
       - build-virtualbox.sh
 
+  # Open the Sunshine firewall ports. Runs after the files module so the
+  # /usr/lib/firewalld/services/sunshine.xml service definition already exists.
+  - type: script
+    scripts:
+      - setup-firewall.sh
+
   - type: bling
     install:
       - 1password

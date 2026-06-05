@@ -94,6 +94,7 @@ modules:
           - dev.zed.Zed
           - dev.vencord.Vesktop
           - com.github.IsmaelMartinez.teams_for_linux
+          - com.github.Matoking.protontricks
           - com.vysp3r.ProtonPlus
           - com.usebottles.bottles
 

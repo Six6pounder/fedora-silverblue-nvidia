@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# Keep the MangoHud Vulkan layer pinned to the same freedesktop runtime branch
+# that the Flatpak Steam uses, so the overlay keeps loading after Steam bumps
+# its runtime (e.g. 25.08 -> 26.08) without anyone having to edit the recipe.
+#
+# The extension ships one branch per freedesktop runtime
+# (org.freedesktop.Platform.VulkanLayer.MangoHud//25.08, //24.08, ...), and a
+# non-interactive `flatpak install` of the bare id errors out with "Multiple
+# refs match" -- so the branch has to be resolved explicitly. We read it from
+# Steam itself instead of hardcoding it.
+#
+# Runs as ExecStartPost of system-flatpak-setup.service, i.e. right after the
+# system flatpaks (Steam included) are installed/updated, so Steam is present
+# and on its current runtime by the time we look.
+
+set -euo pipefail
+
+ext="org.freedesktop.Platform.VulkanLayer.MangoHud"
+
+# e.g. "25.08", parsed from "Runtime: org.freedesktop.Platform/x86_64/25.08".
+# Empty if Steam isn't installed (yet) -- nothing to sync, so bail quietly.
+branch="$(flatpak info --system com.valvesoftware.Steam 2>/dev/null \
+  | awk -F/ '/^[[:space:]]*Runtime:/ { print $NF }')"
+[ -n "$branch" ] || exit 0
+
+# Idempotent: a no-op (bar a quick metadata check) once the matching branch is
+# already current, so it is safe to run on every flatpak-setup invocation.
+flatpak install --system --noninteractive --or-update flathub "${ext}//${branch}"

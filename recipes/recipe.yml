@@ -83,6 +83,11 @@ modules:
         install:
           - com.github.tchx84.Flatseal
           - com.valvesoftware.Steam
+          # NB: the MangoHud Vulkan overlay for Steam is NOT listed here. Its
+          # branch must match Steam's freedesktop runtime, which changes over
+          # time, so a static entry would go stale. mangohud-steam-sync (run as
+          # ExecStartPost of system-flatpak-setup.service) installs the matching
+          # branch automatically right after Steam is set up.
           - io.missioncenter.MissionCenter
           - org.gnome.Loupe
           - org.mozilla.thunderbird_esr

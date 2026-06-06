@@ -97,6 +97,7 @@ modules:
           - com.github.Matoking.protontricks
           - com.vysp3r.ProtonPlus
           - com.usebottles.bottles
+          - com.heroicgameslauncher.hgl
 
   - type: fonts
     fonts:

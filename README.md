@@ -53,6 +53,16 @@ These are one-time manual steps needed after a **fresh install** (they persist a
    ```
    The generated module just grants `allow kernel_t self:process execmem;`. This installs into `/etc/selinux` + `/var/lib/selinux`, so it survives rebases.
 
+### Xbox controllers (xone)
+
+The [xone](https://github.com/medusalix/xone) kernel modules are compiled against the image's kernel and baked in, so **wired** Xbox One/Series controllers work out of the box after a reboot — nothing to do.
+
+The **wireless dongle** additionally needs firmware extracted from a Microsoft driver, which is non-redistributable and so can't ship in the image. Fetch it once (the image bundles `cabextract` for this):
+```bash
+sudo xone-get-firmware.sh
+```
+This writes to `/lib/firmware` under `/var`, so it persists across rebases — you only redo it on a fresh install.
+
 ## ISO
 
 If build on Fedora Atomic, you can generate an offline ISO with the instructions available [here](https://blue-build.org/learn/universal-blue/#fresh-install-from-an-iso). These ISOs cannot unfortunately be distributed on GitHub for free due to large sizes, so for public projects something else has to be used for hosting.

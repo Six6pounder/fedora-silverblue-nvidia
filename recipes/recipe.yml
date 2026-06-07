@@ -67,6 +67,14 @@ modules:
     scripts:
       - build-virtualbox.sh
 
+  # xone is an out-of-tree DKMS driver for Xbox One/Series controllers and the
+  # GIP wireless dongle. Atomic images have no runtime DKMS rebuild, so compile
+  # it against this image's kernel at build time and bake the modules in (same
+  # approach as build-virtualbox.sh above).
+  - type: script
+    scripts:
+      - build-xone.sh
+
   # Open the Sunshine firewall ports. Runs after the files module so the
   # /usr/lib/firewalld/services/sunshine.xml service definition already exists.
   - type: script

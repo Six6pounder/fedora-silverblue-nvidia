@@ -55,13 +55,26 @@ These are one-time manual steps needed after a **fresh install** (they persist a
 
 ### Xbox controllers (xone)
 
-The [xone](https://github.com/medusalix/xone) kernel modules are compiled against the image's kernel and baked in, so **wired** Xbox One/Series controllers work out of the box after a reboot — nothing to do.
+The [xone](https://github.com/dlundqvist/xone) kernel modules (the maintained
+`dlundqvist` fork, which builds against current kernels) are compiled against the
+image's kernel and baked in, so **wired** Xbox One/Series controllers work out of
+the box after a reboot — nothing to do.
 
-The **wireless dongle** additionally needs firmware extracted from a Microsoft driver, which is non-redistributable and so can't ship in the image. Fetch it once (the image bundles `cabextract` for this):
+The **wireless dongle** additionally needs firmware extracted from a Microsoft driver, which is non-redistributable and so can't ship in the image. Fetch it once (the image bundles `bsdtar` for this):
 ```bash
 sudo xone-get-firmware.sh
 ```
-This writes to `/lib/firmware` under `/var`, so it persists across rebases — you only redo it on a fresh install.
+The firmware is written to `/var/lib/firmware` (writable, unlike the read-only `/lib/firmware`), which the kernel searches via the `firmware_class.path` karg baked into the image. It lives under `/var`, so it persists across rebases — you only redo it on a fresh install.
+
+### CoolerControl
+
+Fan control works automatically at boot: the `coolercontrold` daemon is enabled as a system service, so your fan profiles are applied without anyone logging in.
+
+The **GUI** also autostarts at login (via `/etc/xdg/autostart`). To have it come up **minimized to the system tray** instead of opening a window, enable it once per user:
+
+1. Open CoolerControl → **Settings**, and turn on **Start in Tray** (and optionally **Close to Tray**).
+
+On COSMIC, make sure a tray/status-area applet is present on the panel, otherwise the tray icon has nowhere to show.
 
 ## ISO
 

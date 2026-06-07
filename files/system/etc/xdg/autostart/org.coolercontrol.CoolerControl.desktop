@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=CoolerControl
+Comment=Launch the CoolerControl GUI at login. It starts minimized to the system tray if "Start in Tray" is enabled in the app's settings (a per-user preference). The coolercontrold daemon that actually drives the fans runs separately as a system service.
+Exec=coolercontrol
+Icon=org.coolercontrol.CoolerControl
+Terminal=false
+Categories=System;Settings;
+X-GNOME-Autostart-enabled=true

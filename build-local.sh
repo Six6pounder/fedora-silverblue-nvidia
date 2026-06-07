@@ -50,7 +50,11 @@ podman_args=(
   -v "${CACHE_DIR}":/var/lib/containers/storage
 )
 
-build_args=(build)
+# The CLI image's entrypoint is dumb-init, so the first arg must be the binary
+# name (`bluebuild`), not the subcommand. Force the buildah build driver: the
+# default detection reaches for docker (buildx) and fails on /var/run/docker.sock
+# under podman; buildah is bundled in the CLI image and uses the storage we mount.
+build_args=(bluebuild build --build-driver buildah)
 
 if [[ "${PUSH}" -eq 1 ]]; then
   build_args+=(--push)
@@ -68,12 +72,18 @@ if [[ "${PUSH}" -eq 1 ]]; then
     -e REGISTRY_AUTH_FILE=/run/containers/auth.json
   )
 
-  # Pass the cosign signing key through if available, else push unsigned.
+  # Signing: BlueBuild signs by default (the recipe has a `signing` module and
+  # cosign.pub is present), and ERRORS OUT if no key is available -- so when we
+  # have no key we must explicitly pass --no-sign to push an unsigned image.
   if [[ -n "${COSIGN_PRIVATE_KEY:-}" ]]; then
     podman_args+=(-e COSIGN_PRIVATE_KEY)
+  elif [[ -f "${SCRIPT_DIR}/cosign.key" ]]; then
+    : # bluebuild auto-detects ./cosign.key from the mounted repo root
   else
-    echo "WARNING: COSIGN_PRIVATE_KEY not set -- the pushed image will be UNSIGNED." >&2
-    echo "         Rebase to it with ostree-unverified-registry: (not ostree-image-signed:)." >&2
+    build_args+=(--no-sign)
+    echo "WARNING: no cosign key (COSIGN_PRIVATE_KEY unset, no ./cosign.key) --" >&2
+    echo "         pushing UNSIGNED with --no-sign. Rebase via" >&2
+    echo "         ostree-unverified-registry: (not ostree-image-signed:)." >&2
   fi
 fi
 

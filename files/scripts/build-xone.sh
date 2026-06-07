@@ -6,19 +6,20 @@
 # there is no runtime DKMS rebuild, so we compile it here (same approach as
 # build-virtualbox.sh) and ship the resulting .ko files in /usr/lib/modules.
 #
-# Source: https://github.com/medusalix/xone
+# Source: https://github.com/dlundqvist/xone
 #
-# NOTE: upstream medusalix/xone can lag behind newer kernels. If the build below
-# fails to compile against this image's kernel, switch XONE_REPO to the
-# community-maintained fork https://github.com/dlundqvist/xone (drop-in, same
-# layout) and pin XONE_COMMIT to one of its commits.
+# NOTE: we use the community-maintained dlundqvist/xone fork, not upstream
+# medusalix/xone. Upstream is stale (v0.3) and does NOT compile against recent
+# kernels (it failed on this image's 7.0.x kernel). The fork is a drop-in with
+# the same layout and tracks new kernels. If a future kernel breaks the build,
+# bump XONE_COMMIT/XONE_VERSION to a newer tag from that repo.
 
 set -euo pipefail
 
-# Pin to a specific upstream commit for reproducible builds. v0.3 tag.
-XONE_REPO="https://github.com/medusalix/xone.git"
-XONE_COMMIT="8311a25f2b4e69b7a3f8133b884cede065b253cc"
-XONE_VERSION="0.3"
+# Pin to a specific tag for reproducible builds. dlundqvist/xone v0.5.8.
+XONE_REPO="https://github.com/dlundqvist/xone.git"
+XONE_COMMIT="f2aa9fe01103d7600553b505b298ff0bd47ff280"
+XONE_VERSION="0.5.8"
 
 # Resolve the exact kernel version baked into the image (NOT the build host's
 # `uname -r`, which would be wrong inside the build container).
@@ -51,7 +52,14 @@ sed -i "s/#VERSION#/${XONE_VERSION}/" "${SRC}/dkms.conf"
 # Fedora), which is part of the image; the /var/lib/dkms build state is not, but
 # we don't need it at runtime since the modules are prebuilt.
 dkms add -m xone -v "${XONE_VERSION}"
-dkms build -m xone -v "${XONE_VERSION}" -k "${KERNEL_VERSION}"
+# On a build failure, surface the compiler's make.log before exiting -- otherwise
+# dkms just says "Bad return status" and the real error is buried in a file that
+# does not survive the container.
+if ! dkms build -m xone -v "${XONE_VERSION}" -k "${KERNEL_VERSION}"; then
+  echo "=== xone dkms build FAILED; dumping make.log ===" >&2
+  cat "/var/lib/dkms/xone/${XONE_VERSION}/build/make.log" >&2 || true
+  exit 1
+fi
 dkms install -m xone -v "${XONE_VERSION}" -k "${KERNEL_VERSION}"
 
 # xone replaces the in-tree xpad driver and conflicts with mt76x2u on the

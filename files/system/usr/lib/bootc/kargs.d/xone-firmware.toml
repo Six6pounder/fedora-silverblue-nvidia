@@ -1,0 +1,7 @@
+# Tell the kernel firmware loader to also search /var/lib/firmware, a writable,
+# persistent location. The xone wireless dongle firmware is non-redistributable
+# so it can't be baked in -- the user fetches it at runtime with
+# xone-get-firmware.sh -- but the default firmware path /lib/firmware is
+# read-only on an atomic image. bootc merges every *.toml in this dir, so this
+# adds to (does not replace) the base image's bluebuild-kargs.toml.
+kargs = ["firmware_class.path=/var/lib/firmware"]

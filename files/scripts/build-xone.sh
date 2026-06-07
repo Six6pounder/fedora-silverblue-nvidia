@@ -26,16 +26,17 @@ XONE_VERSION="0.5.8"
 KERNEL_VERSION="$(rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-core)"
 echo "Building xone kernel modules for ${KERNEL_VERSION}"
 
-# Build prerequisites. cabextract is needed at *runtime* by xone-get-firmware.sh
-# (the wireless dongle's firmware is non-redistributable and must be fetched by
-# the user post-install), so we install it now to bake it into the image.
+# Build prerequisites. bsdtar (libarchive) is needed at *runtime* by
+# xone-get-firmware.sh -- the fork's firmware script extracts the dongle firmware
+# cab with bsdtar, not cabextract -- so we bake it into the image. The firmware
+# itself is non-redistributable and is fetched by the user post-install.
 dnf5 install -y \
   "kernel-devel-${KERNEL_VERSION}" \
   dkms \
   gcc \
   make \
   git \
-  cabextract
+  bsdtar
 
 # Fetch the pinned source into the DKMS source tree.
 SRC="/usr/src/xone-${XONE_VERSION}"
@@ -70,8 +71,13 @@ install -D -m 644 "${SRC}/install/modprobe.conf" \
 
 # Firmware helper for the wireless dongle. Non-redistributable, so this just
 # downloads + extracts Microsoft's firmware; the user runs it once post-install.
+# Redirect its write target from /lib/firmware (read-only on atomic) to the
+# writable /var/lib/firmware, which the kernel searches via the firmware_class.path
+# karg shipped in files/system/usr/lib/bootc/kargs.d/xone-firmware.toml.
 install -D -m 755 "${SRC}/install/firmware.sh" \
   /usr/bin/xone-get-firmware.sh
+sed -i 's#"/lib/firmware/#"/var/lib/firmware/#g' /usr/bin/xone-get-firmware.sh
+grep -q '/var/lib/firmware/' /usr/bin/xone-get-firmware.sh  # fail build if the patch didn't apply
 
 # Fail the build loudly if the modules did not actually get installed.
 depmod -a "${KERNEL_VERSION}"

@@ -121,6 +121,11 @@ modules:
       enabled:
         - nordvpnd
         - coolercontrold
+        # OpenSSH server. openssh-server ships in the base image and the 'ssh'
+        # firewalld service is already in the default zone, but Fedora atomic
+        # leaves sshd disabled -- enable it here so remote login works out of
+        # the box. Hardening (key-only auth) lives in the sshd_config.d drop-in.
+        - sshd
     user:
       enabled:
         - podman.socket

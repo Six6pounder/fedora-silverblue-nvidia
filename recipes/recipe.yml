@@ -106,6 +106,7 @@ modules:
           - com.vysp3r.ProtonPlus
           - com.usebottles.bottles
           - com.heroicgameslauncher.hgl
+          - io.github.Faugus.faugus-launcher
           # Unreal Engine itself can't be baked into the image: downloading it
           # requires an Epic account login, the EULA forbids redistributing it
           # in a public image, and it weighs 25-40 GB. Epic Asset Manager logs

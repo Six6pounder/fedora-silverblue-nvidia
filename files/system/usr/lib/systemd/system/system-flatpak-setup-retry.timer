@@ -1,0 +1,12 @@
+# Retry trigger for system-flatpak-setup.service. Started on-demand via the
+# service's OnFailure= (not enabled at boot), so no [Install] section. If the
+# setup run fails -- e.g. DNS still wasn't ready after the 20-wait-dns.conf
+# grace period -- this fires the service again 2 minutes later. A repeated
+# failure re-arms this timer through OnFailure again, so it keeps retrying
+# every 2 minutes until the install finally succeeds.
+[Unit]
+Description=Retry system-flatpak-setup after a failed run
+
+[Timer]
+OnActiveSec=2min
+Unit=system-flatpak-setup.service

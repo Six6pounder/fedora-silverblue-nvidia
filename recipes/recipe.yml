@@ -34,6 +34,7 @@ modules:
       packages:
         - fish
         - zoxide
+        - aria2
         - policycoreutils
         - policycoreutils-python-utils
         - podman-docker

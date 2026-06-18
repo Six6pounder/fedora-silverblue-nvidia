@@ -114,6 +114,7 @@ modules:
           # into your Epic account and installs/updates engine versions under
           # $HOME instead.
           - io.github.achetagames.epic_asset_manager
+          - com.ranfdev.DistroShelf
 
   - type: fonts
     fonts:

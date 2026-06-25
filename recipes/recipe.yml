@@ -3,7 +3,7 @@
 # image will be published to ghcr.io/<user>/<name>
 name: sixpounder-cosmic
 # description will be included in the image's metadata
-description: A custom Fedora COSMIC atomic image for my personal use, with NVIDIA (open kernel modules) drivers baked in. It includes various tools and configurations for my workflow, such as NordVPN, Brave Browser, and Podman. The image is designed to be lightweight and efficient, while still providing all the necessary features for my daily tasks.
+description: A custom Fedora COSMIC atomic image for my personal use, with NVIDIA (open kernel modules) drivers baked in. It includes various tools and configurations for my workflow, such as NordVPN, Brave Origin, and Podman. The image is designed to be lightweight and efficient, while still providing all the necessary features for my daily tasks.
 
 # the base image to build on top of (FROM) and the version tag to use
 base-image: ghcr.io/blue-build/base-images/fedora-cosmic-nvidia-open
@@ -42,7 +42,7 @@ modules:
         - liquidctl
         - coolercontrol
         - coolercontrold
-        - brave-browser
+        - brave-origin
         - nordvpn
         # Sunshine game-stream host (LizardByte COPR); ships udev rules + setcap
         # for KMS capture, which the Flatpak/AppImage builds lack.

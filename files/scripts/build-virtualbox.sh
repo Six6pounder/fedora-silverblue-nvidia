@@ -38,6 +38,12 @@ SRPM="$(ls "${WORKDIR}"/usr/src/akmods/VirtualBox-kmod-*.src.rpm | head -1)"
 
 # Compile the kmod as an unprivileged user (the akmods package creates no build
 # user, so make a throwaway one). The output dir must be owned by that user.
+# akmodsbuild hard-codes /tmp for its build tree and rpmbuild creates its helper
+# scripts in /var/tmp.  The BlueBuild stage can inherit both directories as
+# root-only, so restore their normal shared-temporary-directory permissions
+# before dropping privileges.
+chmod 1777 /tmp /var/tmp
+
 if ! getent passwd akmodsbuild >/dev/null; then
   useradd -r -m -d /var/lib/akmodsbuild -s /usr/sbin/nologin akmodsbuild
 fi

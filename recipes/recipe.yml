@@ -21,11 +21,13 @@ modules:
     repos:
       files:
         - nordvpn.repo
+        - 1password.repo
         - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
         - https://copr.fedorainfracloud.org/coprs/codifryed/CoolerControl/repo/fedora-%OS_VERSION%/codifryed-CoolerControl-fedora-%OS_VERSION%.repo
         - https://copr.fedorainfracloud.org/coprs/lizardbyte/stable/repo/fedora-%OS_VERSION%/lizardbyte-stable-fedora-%OS_VERSION%.repo
       keys:
         - https://repo.nordvpn.com/gpg/nordvpn_public.asc
+        - https://downloads.1password.com/linux/keys/1password.asc
         - https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
       # rpmfusion-free provides the VirtualBox userspace + akmod-VirtualBox
       nonfree: rpmfusion
@@ -44,6 +46,11 @@ modules:
         - coolercontrold
         - brave-origin
         - nordvpn
+        # The `bling` 1Password installer uses rpm-ostree, which cannot run
+        # inside bootc's container build. Install from the official RPM repo
+        # through the dnf module instead.
+        - 1password
+        - 1password-cli
         # Sunshine game-stream host (LizardByte COPR); ships udev rules + setcap
         # for KMS capture, which the Flatpak/AppImage builds lack.
         - Sunshine
@@ -82,9 +89,11 @@ modules:
     scripts:
       - setup-firewall.sh
 
-  - type: bling
-    install:
-      - 1password
+  # Apply the fixed runtime group IDs required by 1Password's privileged helper
+  # after the packages have been installed by dnf above.
+  - type: script
+    scripts:
+      - setup-1password.sh
 
   - type: default-flatpaks
     configurations:

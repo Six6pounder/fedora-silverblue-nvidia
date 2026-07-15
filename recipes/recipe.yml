@@ -66,6 +66,10 @@ modules:
         - libsoup3-devel
         - openssl-devel
         - librsvg2-devel
+        # Unsloth Studio's native installer (unsloth.ai/install.sh) builds
+        # llama.cpp from source and needs libcurl headers for it; everything
+        # else it needs (git, gcc, cmake, pciutils, uv) is already covered.
+        - libcurl-devel
 
   # VirtualBox has no official Flatpak (it needs host kernel modules) and is not
   # in the prebuilt ublue akmods set, so compile vboxdrv against this image's

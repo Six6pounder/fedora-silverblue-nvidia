@@ -105,6 +105,9 @@ modules:
         install:
           - com.github.tchx84.Flatseal
           - com.valvesoftware.Steam
+          # Modern GTK4/libadwaita video player. Uses NVDEC for hardware
+          # decoding on this NVIDIA image (falls back to VA-API elsewhere).
+          - com.github.rafostar.Clapper
           # NB: the MangoHud Vulkan overlay for Steam is NOT listed here. Its
           # branch must match Steam's freedesktop runtime, which changes over
           # time, so a static entry would go stale. mangohud-steam-sync (run as

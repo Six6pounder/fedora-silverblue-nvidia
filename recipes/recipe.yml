@@ -22,12 +22,14 @@ modules:
       files:
         - nordvpn.repo
         - 1password.repo
+        - tabby.repo
         - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
         - https://copr.fedorainfracloud.org/coprs/codifryed/CoolerControl/repo/fedora-%OS_VERSION%/codifryed-CoolerControl-fedora-%OS_VERSION%.repo
         - https://copr.fedorainfracloud.org/coprs/lizardbyte/stable/repo/fedora-%OS_VERSION%/lizardbyte-stable-fedora-%OS_VERSION%.repo
       keys:
         - https://repo.nordvpn.com/gpg/nordvpn_public.asc
         - https://downloads.1password.com/linux/keys/1password.asc
+        - https://packagecloud.io/eugeny/tabby/gpgkey
         - https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
       # rpmfusion-free provides the VirtualBox userspace + akmod-VirtualBox
       nonfree: rpmfusion
@@ -70,6 +72,9 @@ modules:
         # llama.cpp from source and needs libcurl headers for it; everything
         # else it needs (git, gcc, cmake, pciutils, uv) is already covered.
         - libcurl-devel
+        # Tabby terminal, from upstream's packagecloud repo (see tabby.repo for
+        # why it points at EL 9 rather than Fedora).
+        - tabby-terminal
 
   # VirtualBox has no official Flatpak (it needs host kernel modules) and is not
   # in the prebuilt ublue akmods set, so compile vboxdrv against this image's

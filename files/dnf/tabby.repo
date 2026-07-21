@@ -1,0 +1,16 @@
+# Tabby terminal (Eugeny/tabby) -- no Flathub app and no maintained COPR.
+#
+# NB: this deliberately points at the EL 9 repo, not Fedora. Upstream's
+# packagecloud install script generates a fedora/$releasever repo that resolves
+# but is empty (0 packages, metadata untouched since 2021); RPMs are only ever
+# published under el/ and ol/. The el/9 RPM is byte-identical to the GitHub
+# release artifact and only requires /bin/sh and gnome-keyring, so it installs
+# cleanly on Fedora. Same approach as nordvpn.repo, which uses the CentOS repo.
+[tabby]
+name=Tabby Terminal
+baseurl=https://packagecloud.io/eugeny/tabby/el/9/$basearch
+enabled=1
+repo_gpgcheck=1
+gpgcheck=0
+gpgkey=https://packagecloud.io/eugeny/tabby/gpgkey
+metadata_expire=300

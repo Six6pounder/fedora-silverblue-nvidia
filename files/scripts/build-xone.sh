@@ -16,6 +16,9 @@
 
 set -euo pipefail
 
+# shellcheck source=./lib-kernel-devel.sh
+source "$(dirname "$(readlink -f "$0")")/lib-kernel-devel.sh"
+
 # Pin to a specific tag for reproducible builds. dlundqvist/xone v0.5.8.
 XONE_REPO="https://github.com/dlundqvist/xone.git"
 XONE_COMMIT="f2aa9fe01103d7600553b505b298ff0bd47ff280"
@@ -30,8 +33,8 @@ echo "Building xone kernel modules for ${KERNEL_VERSION}"
 # xone-get-firmware.sh -- the fork's firmware script extracts the dongle firmware
 # cab with bsdtar, not cabextract -- so we bake it into the image. The firmware
 # itself is non-redistributable and is fetched by the user post-install.
+install_kernel_devel "${KERNEL_VERSION}"
 dnf5 install -y \
-  "kernel-devel-${KERNEL_VERSION}" \
   dkms \
   gcc \
   make \

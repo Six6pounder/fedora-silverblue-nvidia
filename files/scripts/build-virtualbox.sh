@@ -17,6 +17,9 @@
 
 set -euo pipefail
 
+# shellcheck source=./lib-kernel-devel.sh
+source "$(dirname "$(readlink -f "$0")")/lib-kernel-devel.sh"
+
 # Resolve the exact kernel version baked into the image (NOT the build host's
 # `uname -r`, which would be wrong inside the build container).
 KERNEL_VERSION="$(rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-core)"
@@ -24,8 +27,11 @@ echo "Building VirtualBox kernel modules for ${KERNEL_VERSION}"
 
 # Build prerequisites. VirtualBox-kmodsrc carries the actual module source that
 # the kmod src.rpm BuildRequires; none of these pull in akmod-VirtualBox.
+# kernel-devel goes first and on its own: akmods requires kernel-devel-matched
+# for the running kernel, which is only installable once that exact version is
+# available (see lib-kernel-devel.sh).
+install_kernel_devel "${KERNEL_VERSION}"
 dnf5 install -y \
-  "kernel-devel-${KERNEL_VERSION}" \
   akmods \
   cpio \
   VirtualBox-kmodsrc

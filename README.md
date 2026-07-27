@@ -1,18 +1,21 @@
 # Sixpounder Atomic Images &nbsp; [![build badge](https://github.com/Six6pounder/fedora-silverblue-nvidia/actions/workflows/build.yml/badge.svg)](https://github.com/Six6pounder/fedora-silverblue-nvidia/actions/workflows/build.yml)
 
-These are my personal Fedora Atomic OS images, with NVIDIA (open kernel modules) drivers baked in. Built using [BlueBuild](https://blue-build.org/). Two desktop variants are published from this repo, sharing the same tooling/config and differing only in base image:
+These are my personal Fedora Atomic OS images, with NVIDIA (open kernel modules) drivers baked in. Built using [BlueBuild](https://blue-build.org/). Three desktop variants are published from this repo, sharing the same tooling/config and differing only in base image:
 
 | Variant | Recipe | Base image | Published as |
 | --- | --- | --- | --- |
 | COSMIC | [`recipes/recipe.yml`](recipes/recipe.yml) | `fedora-cosmic-nvidia-open` | `ghcr.io/six6pounder/sixpounder-cosmic` |
 | KDE Plasma (Kinoite) | [`recipes/recipe-kde.yml`](recipes/recipe-kde.yml) | `fedora-kinoite-nvidia-open` | `ghcr.io/six6pounder/sixpounder-kde` |
+| GNOME (Silverblue) | [`recipes/recipe-gnome.yml`](recipes/recipe-gnome.yml) | `fedora-silverblue-nvidia-open` | `ghcr.io/six6pounder/sixpounder-gnome` |
+
+That sharing is structural, not a convention to remember: every module lives in [`recipes/common.yml`](recipes/common.yml) and each recipe is just a name, a description, a base image and `from-file: common.yml`. Add a package or a Flatpak once and all three images get it, so switching desktops never means switching to a less-equipped system. Only put something in an individual recipe if it genuinely differs by desktop.
 
 ## Installation
 
 > [!WARNING]  
 > [This is an experimental feature](https://www.fedoraproject.org/wiki/Changes/OstreeNativeContainerStable), try at your own discretion.
 
-To rebase an existing atomic Fedora installation to the latest build, substitute `sixpounder-cosmic` below with `sixpounder-kde` if you want the KDE variant instead:
+To rebase an existing atomic Fedora installation to the latest build, substitute `sixpounder-cosmic` below with `sixpounder-kde` or `sixpounder-gnome` if you want one of the other variants:
 
 - First rebase to the unsigned image, to get the proper signing keys and policies installed:
   ```
@@ -34,7 +37,7 @@ To rebase an existing atomic Fedora installation to the latest build, substitute
 The `latest` tag will automatically point to the latest build. That build will still always use the Fedora version specified in the recipe, so you won't get accidentally updated to the next major version.
 
 > [!NOTE]
-> `rpm-ostree rebase` only replaces `/usr`; `/etc` and `/var` (including `/home`) persist across the rebase. If you rebase back and forth between the COSMIC and KDE variants under the same user account, a handful of files are genuinely shared between the two desktops and can behave oddly when switched: `~/.config/mimeapps.list`, GTK theme settings, `~/.config/autostart/`, and xdg-desktop-portal permissions. The secret store is the one to be careful with — COSMIC uses gnome-keyring (`~/.local/share/keyrings/`) while KDE Plasma defaults to KWallet (`~/.local/share/kwalletd/`), so they don't collide, but back up `~/.local/share/keyrings/` before experimenting if it holds anything you care about. Using a separate Linux user account per desktop avoids all of this entirely.
+> `rpm-ostree rebase` only replaces `/usr`; `/etc` and `/var` (including `/home`) persist across the rebase. If you rebase between variants under the same user account, a handful of files are genuinely shared between desktops and can behave oddly when switched: `~/.config/mimeapps.list`, GTK theme settings, `~/.config/autostart/`, and xdg-desktop-portal permissions. The secret store is the one to be careful with — COSMIC and GNOME both use gnome-keyring (`~/.local/share/keyrings/`), so they share one store, while KDE Plasma defaults to KWallet (`~/.local/share/kwalletd/`); the two don't collide, but secrets saved under KDE won't be visible from the other two. Back up `~/.local/share/keyrings/` before experimenting if it holds anything you care about. Using a separate Linux user account per desktop avoids all of this entirely.
 
 ## Post-install notes
 
@@ -82,7 +85,7 @@ The **GUI** also autostarts at login (via `/etc/xdg/autostart`). To have it come
 
 1. Open CoolerControl → **Settings**, and turn on **Start in Tray** (and optionally **Close to Tray**).
 
-On COSMIC, make sure a tray/status-area applet is present on the panel, otherwise the tray icon has nowhere to show. KDE Plasma has a system tray in the panel by default, so no extra setup is needed there.
+On COSMIC, make sure a tray/status-area applet is present on the panel, otherwise the tray icon has nowhere to show. KDE Plasma has a system tray in the panel by default, so no extra setup is needed there. GNOME has no notification area of its own — the GNOME image ships `gnome-shell-extension-appindicator` for it; if tray icons don't appear, enable **AppIndicator and KStatusNotifierItem Support** in the Extensions app.
 
 ### Claude Desktop
 
@@ -98,7 +101,7 @@ If build on Fedora Atomic, you can generate an offline ISO with the instructions
 
 ## Verification
 
-These images are signed with [Sigstore](https://www.sigstore.dev/)'s [cosign](https://github.com/sigstore/cosign). You can verify the signature by downloading the `cosign.pub` file from this repo and running the following command (substitute `sixpounder-kde` for the KDE variant):
+These images are signed with [Sigstore](https://www.sigstore.dev/)'s [cosign](https://github.com/sigstore/cosign). You can verify the signature by downloading the `cosign.pub` file from this repo and running the following command (substitute `sixpounder-kde` or `sixpounder-gnome` for the other variants):
 
 ```bash
 cosign verify --key cosign.pub ghcr.io/six6pounder/sixpounder-cosmic

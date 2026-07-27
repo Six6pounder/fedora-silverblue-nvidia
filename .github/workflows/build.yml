@@ -27,8 +27,10 @@ jobs:
       matrix:
         recipe:
           # !! Add your recipes here
+          # All three share recipes/common.yml; only the base image differs.
           - recipe.yml
           - recipe-kde.yml
+          - recipe-gnome.yml
     steps:
       # the build is fully handled by the reusable github action
       - name: Build Custom Image

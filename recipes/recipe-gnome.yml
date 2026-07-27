@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+# image will be published to ghcr.io/<user>/<name>
+name: sixpounder-gnome
+# description will be included in the image's metadata
+description: A custom Fedora GNOME (Silverblue) atomic image for my personal use, with NVIDIA (open kernel modules) drivers baked in. It includes various tools and configurations for my workflow, such as NordVPN, Brave Origin, and Podman. The image is designed to be lightweight and efficient, while still providing all the necessary features for my daily tasks.
+
+# the base image to build on top of (FROM) and the version tag to use
+base-image: ghcr.io/blue-build/base-images/fedora-silverblue-nvidia-open
+image-version: latest # latest is also supported if you want new updates ASAP
+
+# Everything is shared with the COSMIC and KDE variants -- see common.yml. Add
+# per-DE modules below the include only when they genuinely differ by desktop.
+modules:
+  - from-file: common.yml
+
+  # GNOME Shell has no native notification area, so the tray icons the shared
+  # apps rely on (Claude Desktop, 1Password, CoolerControl) have nowhere to
+  # appear without this extension. KDE and COSMIC both have a tray, which is
+  # why this is here and not in common.yml -- installing it there would drag
+  # gnome-shell into the Kinoite and COSMIC images.
+  - type: dnf
+    install:
+      skip-unavailable: true
+      packages:
+        - gnome-shell-extension-appindicator

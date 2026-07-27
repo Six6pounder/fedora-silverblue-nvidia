@@ -14,13 +14,25 @@ image-version: latest # latest is also supported if you want new updates ASAP
 modules:
   - from-file: common.yml
 
-  # GNOME Shell has no native notification area, so the tray icons the shared
-  # apps rely on (Claude Desktop, 1Password, CoolerControl) have nowhere to
-  # appear without this extension. KDE and COSMIC both have a tray, which is
-  # why this is here and not in common.yml -- installing it there would drag
-  # gnome-shell into the Kinoite and COSMIC images.
-  - type: dnf
+  # The extension set this repo shipped back when it was GNOME-only, restored
+  # from the recipe as it was before the switch to COSMIC (commit 1a4649d).
+  # All five list GNOME 50 (Fedora 44's Shell) as supported.
+  #
+  # AppIndicator is the one that is not cosmetic: GNOME Shell has no native
+  # notification area, so without it the tray icons the shared apps rely on
+  # (Claude Desktop, 1Password, CoolerControl) have nowhere to appear.
+  - type: gnome-extensions
     install:
-      skip-unavailable: true
-      packages:
-        - gnome-shell-extension-appindicator
+      - 3193 # Blur my Shell
+      - 615 # AppIndicator and KStatusNotifierItem Support
+      - 307 # Dash-to-Dock
+      - 517 # Caffeine
+      - 4691 # Pip On Top
+
+  # Manages the extensions above (updates, per-extension settings). GNOME-only,
+  # so it stays out of common.yml.
+  - type: default-flatpaks
+    configurations:
+      - scope: system
+        install:
+          - com.mattjakeman.ExtensionManager

@@ -8,7 +8,7 @@ These are my personal Fedora Atomic OS images, with NVIDIA (open kernel modules)
 | KDE Plasma (Kinoite) | [`recipes/recipe-kde.yml`](recipes/recipe-kde.yml) | `fedora-kinoite-nvidia-open` | `ghcr.io/six6pounder/sixpounder-kde` |
 | GNOME (Silverblue) | [`recipes/recipe-gnome.yml`](recipes/recipe-gnome.yml) | `fedora-silverblue-nvidia-open` | `ghcr.io/six6pounder/sixpounder-gnome` |
 
-That sharing is structural, not a convention to remember: every module lives in [`recipes/common.yml`](recipes/common.yml) and each recipe is just a name, a description, a base image and `from-file: common.yml`. Add a package or a Flatpak once and all three images get it, so switching desktops never means switching to a less-equipped system. Only put something in an individual recipe if it genuinely differs by desktop.
+That sharing is structural, not a convention to remember: every module lives in [`recipes/common.yml`](recipes/common.yml) and each recipe is just a name, a description, a base image and `from-file: common.yml`. Add a package or a Flatpak once and all three images get it, so switching desktops never means switching to a less-equipped system. Only put something in an individual recipe if it genuinely differs by desktop — today that is just the GNOME variant's Shell extensions (Blur my Shell, AppIndicator, Dash to Dock, Caffeine, PiP on top) and Extension Manager.
 
 ## Installation
 
@@ -85,7 +85,7 @@ The **GUI** also autostarts at login (via `/etc/xdg/autostart`). To have it come
 
 1. Open CoolerControl → **Settings**, and turn on **Start in Tray** (and optionally **Close to Tray**).
 
-On COSMIC, make sure a tray/status-area applet is present on the panel, otherwise the tray icon has nowhere to show. KDE Plasma has a system tray in the panel by default, so no extra setup is needed there. GNOME has no notification area of its own — the GNOME image ships `gnome-shell-extension-appindicator` for it; if tray icons don't appear, enable **AppIndicator and KStatusNotifierItem Support** in the Extensions app.
+On COSMIC, make sure a tray/status-area applet is present on the panel, otherwise the tray icon has nowhere to show. KDE Plasma has a system tray in the panel by default, so no extra setup is needed there. GNOME has no notification area of its own — the GNOME image ships the AppIndicator extension for it; if tray icons don't appear, enable **AppIndicator and KStatusNotifierItem Support** in the Extensions app (also installed there).
 
 ### Claude Desktop
 

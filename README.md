@@ -84,6 +84,14 @@ The **GUI** also autostarts at login (via `/etc/xdg/autostart`). To have it come
 
 On COSMIC, make sure a tray/status-area applet is present on the panel, otherwise the tray icon has nowhere to show. KDE Plasma has a system tray in the panel by default, so no extra setup is needed there.
 
+### Claude Desktop
+
+Anthropic ships the Linux desktop app only as a `.deb` from their own apt repo — there is no RPM or Flatpak, and [their docs](https://code.claude.com/docs/en/desktop-linux) list Fedora as unsupported — so the image unpacks the `.deb` at build time (`install-claude-desktop.sh`, which verifies the repo signature and checksums the way apt does). Launch **Claude** from the app menu and sign in; nothing else to do.
+
+Because the app can't self-update on Linux, **new versions arrive with the image**: each rebuild picks up whatever is current in Anthropic's stable repo, so `rpm-ostree upgrade` is what updates it.
+
+Two caveats from the Linux beta: Computer Use and dictation aren't available, and the Quick Entry global hotkey needs the desktop's GlobalShortcuts portal under Wayland.
+
 ## ISO
 
 If build on Fedora Atomic, you can generate an offline ISO with the instructions available [here](https://blue-build.org/learn/universal-blue/#fresh-install-from-an-iso). These ISOs cannot unfortunately be distributed on GitHub for free due to large sizes, so for public projects something else has to be used for hosting.

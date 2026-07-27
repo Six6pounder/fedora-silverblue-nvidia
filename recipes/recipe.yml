@@ -75,6 +75,13 @@ modules:
         # Tabby terminal, from upstream's packagecloud repo (see tabby.repo for
         # why it points at EL 9 rather than Fedora).
         - tabby-terminal
+        # Runtime bits Claude Desktop only Recommends (so install-claude-desktop.sh
+        # below does not pull them in): the appindicator tray icon, and the
+        # qemu/OVMF/virtiofs stack its Cowork tab uses to sandbox agents in a VM.
+        - libayatana-appindicator-gtk3
+        - qemu-system-x86-core
+        - edk2-ovmf
+        - virtiofsd
 
   # VirtualBox has no official Flatpak (it needs host kernel modules) and is not
   # in the prebuilt ublue akmods set, so compile vboxdrv against this image's
@@ -103,6 +110,13 @@ modules:
   - type: script
     scripts:
       - setup-1password.sh
+
+  # Claude Desktop ships only as a .deb from Anthropic's own apt repo, with no
+  # RPM or Flatpak, so unpack it into the image (see the script for why that is
+  # safe here). Runs after dnf so its ldd check sees the final library set.
+  - type: script
+    scripts:
+      - install-claude-desktop.sh
 
   - type: default-flatpaks
     configurations:

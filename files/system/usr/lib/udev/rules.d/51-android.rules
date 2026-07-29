@@ -1,0 +1,12 @@
+# Give the locally logged-in user access to Android devices over USB.
+#
+# Fedora's android-tools package ships only /usr/bin/{adb,fastboot} and no udev
+# rules, and the base image's 69-libmtp.rules only covers the MTP interface, so
+# without this `adb devices` reports "no permissions" for every phone.
+#
+# Match on the USB interface class rather than a vendor/product ID list: every
+# device exposing an ADB or fastboot interface uses the same AOSP-assigned
+# triplet, so this needs no maintenance as new phones appear.
+#   ff/42/01 = adb, ff/42/03 = fastboot
+SUBSYSTEM=="usb", ENV{ID_USB_INTERFACES}=="*:ff4201:*", TAG+="uaccess"
+SUBSYSTEM=="usb", ENV{ID_USB_INTERFACES}=="*:ff4203:*", TAG+="uaccess"

@@ -78,6 +78,9 @@ modules:
         - qemu-system-x86-core
         - edk2-ovmf
         - virtiofsd
+        # Android platform tools (adb, fastboot). The Fedora package carries no
+        # udev rules, so USB access comes from 51-android.rules in files/system.
+        - android-tools
 
   # VirtualBox has no official Flatpak (it needs host kernel modules) and is not
   # in the prebuilt ublue akmods set, so compile vboxdrv against this image's

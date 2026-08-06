@@ -81,6 +81,12 @@ modules:
         # Android platform tools (adb, fastboot). The Fedora package carries no
         # udev rules, so USB access comes from 51-android.rules in files/system.
         - android-tools
+        # rclone, for mounting/syncing cloud remotes (Google Drive). This has to
+        # be baked in rather than run from a container: podman rootless puts the
+        # container rootfs in rslave, so a FUSE mount created inside one never
+        # propagates back to the host and the mountpoint stays empty. fusermount3
+        # comes from fuse3, already present in the base image.
+        - rclone
 
   # VirtualBox has no official Flatpak (it needs host kernel modules) and is not
   # in the prebuilt ublue akmods set, so compile vboxdrv against this image's

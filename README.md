@@ -95,6 +95,16 @@ Because the app can't self-update on Linux, **new versions arrive with the image
 
 Two caveats from the Linux beta: Computer Use and dictation aren't available, and the Quick Entry global hotkey needs the desktop's GlobalShortcuts portal under Wayland.
 
+### ChatGPT (with Codex)
+
+OpenAI's [Linux desktop app](https://openai.com/codex/) — ChatGPT, ChatGPT Work and the Codex coding agent in one Electron app — is baked in from OpenAI's own RPM repo (`chatgpt.repo`), so it needs no unpacking script: Fedora is a supported distro upstream. Launch **ChatGPT** from the app menu and sign in.
+
+The repo's signing key isn't published at any URL — upstream embeds it in the package's `%post` scriptlet — so the image ships it at `/etc/pki/rpm-gpg/RPM-GPG-KEY-chatgpt` ("Codex Linux Repository", `3BFA0E4AE8B8CC16A2D9BA684A3B4A566C4660E4`) and the repo verifies both metadata and package against it.
+
+Like Claude Desktop, it doesn't self-update here: each rebuild picks up the current version, so `rpm-ostree upgrade` is what updates it. It is by far the largest single thing in the image (~1.3 GB installed) — drop `chatgpt` from the package list in `common.yml` if you'd rather layer it per-machine with `rpm-ostree install chatgpt`; the repo stays configured either way.
+
+Computer Use is not available in the Linux preview.
+
 ## ISO
 
 If build on Fedora Atomic, you can generate an offline ISO with the instructions available [here](https://blue-build.org/learn/universal-blue/#fresh-install-from-an-iso). These ISOs cannot unfortunately be distributed on GitHub for free due to large sizes, so for public projects something else has to be used for hosting.

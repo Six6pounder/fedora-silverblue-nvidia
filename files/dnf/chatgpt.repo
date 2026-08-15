@@ -1,0 +1,24 @@
+# OpenAI's ChatGPT desktop app for Linux (ChatGPT + Work + Codex in one
+# Electron app), from openai.com/codex. Unlike Claude Desktop there IS an
+# official RPM and an official rpm-md repo, so no unpacking script is needed --
+# just the repo plus the package in the dnf module.
+#
+# This file is a verbatim copy of what the package's own %post scriptlet writes
+# to /etc/yum.repos.d/chatgpt.repo; it exists only so the repo is available
+# *during* the build. After the package installs, its scriptlet rewrites this
+# file (and /etc/pki/rpm-gpg/RPM-GPG-KEY-chatgpt) with the same content.
+#
+# The signing key ("Codex Linux Repository",
+# 3BFA0E4AE8B8CC16A2D9BA684A3B4A566C4660E4) is not published at any URL --
+# upstream ships it base64-embedded in that scriptlet -- so it can't go in the
+# dnf module's `keys:` list. It is baked in at the path below via
+# files/system/etc/pki/rpm-gpg/, which the files module lays down before this
+# repo is ever used, and dnf imports it from there.
+[openai-chatgpt]
+name=ChatGPT
+baseurl=https://persistent.oaistatic.com/codex-app-prod/linux/rpm/$basearch
+enabled=1
+type=rpm-md
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-chatgpt

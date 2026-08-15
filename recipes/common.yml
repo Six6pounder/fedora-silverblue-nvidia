@@ -19,6 +19,7 @@ modules:
         - nordvpn.repo
         - 1password.repo
         - tabby.repo
+        - chatgpt.repo
         - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
         - https://copr.fedorainfracloud.org/coprs/codifryed/CoolerControl/repo/fedora-%OS_VERSION%/codifryed-CoolerControl-fedora-%OS_VERSION%.repo
         - https://copr.fedorainfracloud.org/coprs/lizardbyte/stable/repo/fedora-%OS_VERSION%/lizardbyte-stable-fedora-%OS_VERSION%.repo
@@ -87,6 +88,15 @@ modules:
         # propagates back to the host and the mountpoint stays empty. fusermount3
         # comes from fuse3, already present in the base image.
         - rclone
+        # OpenAI's ChatGPT desktop app (ChatGPT + Work + Codex in one Electron
+        # app), from their official RPM repo -- see chatgpt.repo for how the
+        # signing key gets in. Fedora 43/44 are supported upstream, so this
+        # needs no unpacking script the way Claude Desktop does.
+        # NB: it is big -- ~440 MB downloaded, ~1.3 GB installed -- so it is
+        # the single largest thing in the image. Dropping it from this list is
+        # all it takes to go back to installing it per-machine instead
+        # (`rpm-ostree install chatgpt`, the repo file stays either way).
+        - chatgpt
 
   # VirtualBox has no official Flatpak (it needs host kernel modules) and is not
   # in the prebuilt ublue akmods set, so compile vboxdrv against this image's

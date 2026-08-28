@@ -151,6 +151,9 @@ modules:
           # branch automatically right after Steam is set up.
           - io.missioncenter.MissionCenter
           - org.gnome.Loupe
+          # COSMIC and Plasma both ship a calculator, but not this one; on
+          # GNOME it sits alongside the stock RPM build, same as Clapper above.
+          - org.gnome.Calculator
           - org.mozilla.thunderbird_esr
           - dev.zed.Zed
           - dev.vencord.Vesktop

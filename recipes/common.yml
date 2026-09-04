@@ -43,6 +43,13 @@ modules:
         - liquidctl
         - coolercontrol
         - coolercontrold
+        # OpenRGB, for the RGB lighting CoolerControl/liquidctl don't cover
+        # (motherboard, DRAM, GPU, peripherals). The Fedora package hard-Requires
+        # openrgb-udev-rules, so the upstream rule set from openrgb.org/udev.html
+        # -- uaccess on /dev/i2c-*, the Super I/O port and every supported USB
+        # device -- is pulled in automatically; nothing to add in files/system.
+        # i2c-dev is already loaded at boot by the base image's fwupd-i2c.conf.
+        - openrgb
         - brave-origin
         - nordvpn
         # The `bling` 1Password installer uses rpm-ostree, which cannot run

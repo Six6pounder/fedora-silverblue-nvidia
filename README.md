@@ -87,6 +87,33 @@ The **GUI** also autostarts at login (via `/etc/xdg/autostart`). To have it come
 
 On COSMIC, make sure a tray/status-area applet is present on the panel, otherwise the tray icon has nowhere to show. KDE Plasma has a system tray in the panel by default, so no extra setup is needed there. GNOME has no notification area of its own — the GNOME image ships the AppIndicator extension for it; if tray icons don't appear, enable **AppIndicator and KStatusNotifierItem Support** in the Extensions app (also installed there).
 
+### OpenRGB
+
+RGB lighting control for everything `coolercontrold`/`liquidctl` don't cover — motherboard and DRAM headers, GPU, keyboards, mice and so on. Installed from the Fedora repo rather than the Flatpak, because the RPM brings the pieces the sandboxed build can't: `openrgb` hard-Requires `openrgb-udev-rules`, so **the full upstream rule set from [openrgb.org/udev.html](https://openrgb.org/udev.html) is already in the image** — nothing to download or copy into `/etc/udev/rules.d` by hand. The rules use `TAG+="uaccess"` (no `plugdev` group, no `usermod`), so the logged-in user gets access to `/dev/i2c-*`, the Super I/O `port` device and every supported USB device automatically. `i2c-dev` is loaded at boot by the base image's `fwupd-i2c.conf`, so that's covered too.
+
+Just launch **OpenRGB** from the app menu — no `sudo`, no post-install step.
+
+The package also ships an `openrgb.service` SDK server (`openrgb --server`), left **disabled** on purpose: it runs as root for the whole boot, and you only need it if something else talks to OpenRGB's SDK, or you want a saved profile re-applied at startup. Enable it per machine if you do:
+
+```bash
+sudo systemctl enable --now openrgb
+```
+
+**If motherboard or DRAM devices don't show up** (USB peripherals are unaffected), the SMBus adapter probably never registered. Check with:
+
+```bash
+cat /sys/bus/i2c/devices/*/name | grep -i smbus
+```
+
+No `SMBus PIIX4` line means the board's ACPI firmware claims the SMBus I/O range and `i2c-piix4` backed off — the usual situation on AMD boards, and the case on this machine as shipped. The fix is a kernel argument, deliberately **not** baked into the image because it lets the driver poke a region ACPI has reserved (rare but real risk of fighting the firmware/EC):
+
+```bash
+rpm-ostree kargs --append=acpi_enforce_resources=lax
+systemctl reboot
+```
+
+It persists across upgrades and rebases, and `rpm-ostree kargs --delete=acpi_enforce_resources=lax` reverts it.
+
 ### Claude Desktop
 
 Anthropic ships the Linux desktop app only as a `.deb` from their own apt repo — there is no RPM or Flatpak, and [their docs](https://code.claude.com/docs/en/desktop-linux) list Fedora as unsupported — so the image unpacks the `.deb` at build time (`install-claude-desktop.sh`, which verifies the repo signature and checksums the way apt does). Launch **Claude** from the app menu and sign in; nothing else to do.

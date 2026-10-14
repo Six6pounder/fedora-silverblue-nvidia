@@ -1,21 +1,24 @@
 # Sixpounder Atomic Images &nbsp; [![build badge](https://github.com/Six6pounder/fedora-silverblue-nvidia/actions/workflows/build.yml/badge.svg)](https://github.com/Six6pounder/fedora-silverblue-nvidia/actions/workflows/build.yml)
 
-These are my personal Fedora Atomic OS images, with NVIDIA (open kernel modules) drivers baked in. Built using [BlueBuild](https://blue-build.org/). Three desktop variants are published from this repo, sharing the same tooling/config and differing only in base image:
+These are my personal Fedora Atomic OS images, built using [BlueBuild](https://blue-build.org/). COSMIC, KDE and GNOME each have an NVIDIA variant (open kernel modules) and an Intel Mac/T2 variant, sharing the same applications and tooling:
 
 | Variant | Recipe | Base image | Published as |
 | --- | --- | --- | --- |
 | COSMIC | [`recipes/recipe.yml`](recipes/recipe.yml) | `fedora-cosmic-nvidia-open` | `ghcr.io/six6pounder/sixpounder-cosmic` |
 | KDE Plasma (Kinoite) | [`recipes/recipe-kde.yml`](recipes/recipe-kde.yml) | `fedora-kinoite-nvidia-open` | `ghcr.io/six6pounder/sixpounder-kde` |
 | GNOME (Silverblue) | [`recipes/recipe-gnome.yml`](recipes/recipe-gnome.yml) | `fedora-silverblue-nvidia-open` | `ghcr.io/six6pounder/sixpounder-gnome` |
+| COSMIC T2 | [`recipes/recipe-cosmic-t2.yml`](recipes/recipe-cosmic-t2.yml) | `fedora-cosmic:44` | `ghcr.io/six6pounder/sixpounder-cosmic-t2` |
+| KDE T2 | [`recipes/recipe-kde-t2.yml`](recipes/recipe-kde-t2.yml) | `fedora-kinoite:44` | `ghcr.io/six6pounder/sixpounder-kde-t2` |
+| GNOME T2 | [`recipes/recipe-gnome-t2.yml`](recipes/recipe-gnome-t2.yml) | `fedora-silverblue:44` | `ghcr.io/six6pounder/sixpounder-gnome-t2` |
 
-That sharing is structural, not a convention to remember: every module lives in [`recipes/common.yml`](recipes/common.yml) and each recipe is just a name, a description, a base image and `from-file: common.yml`. Add a package or a Flatpak once and all three images get it, so switching desktops never means switching to a less-equipped system. Only put something in an individual recipe if it genuinely differs by desktop — today that is just the GNOME variant's Shell extensions (Blur my Shell, AppIndicator, Dash to Dock, Caffeine, PiP on top) and Extension Manager.
+Applications and tooling live in [`recipes/common.yml`](recipes/common.yml), used by all six images. GNOME extensions and Extension Manager live in `recipes/gnome-common.yml`, shared by both GNOME variants. T2 images include `t2-pre.yml` **before** common modules to replace the kernel before compiling VirtualBox/xone, then `t2-post.yml` to configure services and regenerate/verify the initramfs. Hardware configuration is isolated in `files/t2`; NVIDIA images keep their existing kernel and hardware settings.
 
 ## Installation
 
 > [!WARNING]  
 > [This is an experimental feature](https://www.fedoraproject.org/wiki/Changes/OstreeNativeContainerStable), try at your own discretion.
 
-To rebase an existing atomic Fedora installation to the latest build, substitute `sixpounder-cosmic` below with `sixpounder-kde` or `sixpounder-gnome` if you want one of the other variants:
+For Intel Macs with a T2 chip, use the [T2 instructions below](#intel-macs-with-t2) instead. For the NVIDIA variants, to rebase an existing atomic Fedora installation to the latest build, substitute `sixpounder-cosmic` below with `sixpounder-kde` or `sixpounder-gnome` if you want one of the other variants:
 
 - First rebase to the unsigned image, to get the proper signing keys and policies installed:
   ```
@@ -38,6 +41,82 @@ The `latest` tag will automatically point to the latest build. That build will s
 
 > [!NOTE]
 > `rpm-ostree rebase` only replaces `/usr`; `/etc` and `/var` (including `/home`) persist across the rebase. If you rebase between variants under the same user account, a handful of files are genuinely shared between desktops and can behave oddly when switched: `~/.config/mimeapps.list`, GTK theme settings, `~/.config/autostart/`, and xdg-desktop-portal permissions. The secret store is the one to be careful with — COSMIC and GNOME both use gnome-keyring (`~/.local/share/keyrings/`), so they share one store, while KDE Plasma defaults to KWallet (`~/.local/share/kwalletd/`); the two don't collide, but secrets saved under KDE won't be visible from the other two. Back up `~/.local/share/keyrings/` before experimenting if it holds anything you care about. Using a separate Linux user account per desktop avoids all of this entirely.
+
+## Intel Macs with T2
+
+The T2 variants target **x86_64 Intel Macs with an Apple T2 chip**, initially the 2019 15-inch MacBook Pro (`MacBookPro15,1` / `MacBookPro15,3`). They use Fedora 44 and the signed packages from [sharpenedblade/t2linux COPR](https://copr.fedorainfracloud.org/coprs/sharpenedblade/t2linux/), following the [Fedora T2 guide](https://wiki.t2linux.org/distributions/fedora/installation/). They include the patched kernel, T2 keyboard/trackpad drivers, audio configuration, kernel Touch Bar support and `t2fanrd` fan control. Intel/AMD graphics use the base image's Mesa drivers.
+
+This is an Atomic **rebase**, not a live ISO installer. Start from a working Fedora Atomic installation. Fedora installed from the T2 project's conventional live ISO is not automatically an Atomic installation. Keep the previous deployment available for rollback. For a fresh install, follow the [T2 pre-install guide](https://wiki.t2linux.org/guides/preinstall/) for Apple's boot settings and prepare Atomic with external keyboard/mouse and Ethernet/tethering as needed; this repository does not yet provide a T2-enabled installer.
+
+### Rebase
+
+Wait for a successful CI build publishing the selected image before running these commands. Replace `sixpounder-cosmic-t2` with `sixpounder-kde-t2` or `sixpounder-gnome-t2` as desired:
+
+```bash
+sudo rpm-ostree rebase ostree-unverified-registry:ghcr.io/six6pounder/sixpounder-cosmic-t2:latest
+# Apply to the pending deployment BEFORE its first boot.
+sudo rpm-ostree kargs \
+  --append-if-missing=intel_iommu=on \
+  --append-if-missing=iommu=pt \
+  --append-if-missing=pm_async=off \
+  --append-if-missing=mem_sleep_default=deep \
+  --append-if-missing=firmware_class.path=/var/lib/firmware
+systemctl reboot
+```
+
+Then switch to the signed image and reboot again:
+
+```bash
+sudo rpm-ostree rebase ostree-image-signed:docker://ghcr.io/six6pounder/sixpounder-cosmic-t2:latest
+systemctl reboot
+```
+
+The T2 boot parameters match [Omarchy's T2 setup](https://github.com/basecamp/omarchy/blob/master/install/hardware/apple/fix-t2.sh). The image also ships bootc kernel-argument configuration, but **`rpm-ostree rebase` does not apply that configuration automatically**: the explicit `kargs` command above is required. Check existing arguments with `rpm-ostree kargs` and remove conflicting values from previous customizations before applying these defaults.
+
+### Automatic Wi-Fi and Bluetooth firmware
+
+Around 90 seconds after boot, a timer detects T2 hardware and the Broadcom chip. It reuses complete firmware already in `/var/lib/firmware/brcm`, or copies existing Apple firmware from `/usr/lib/firmware/brcm` into that persistent directory. If firmware is missing, it downloads an Apple macOS Recovery image using the pinned upstream downloader, verifies Apple's signed chunklist and image, mounts the converted image **read-only**, and converts the firmware using the pinned T2 Linux renamer. No macOS installation is required and no Apple firmware is redistributed in these images.
+
+For the first download, connect **Ethernet or USB tethering** if internal Wi-Fi is unavailable. Allow several GB of free disk space and time for the recovery image download/conversion. Recovery runs in the background and does not delay login. Failures are logged and retried 15 minutes after the previous attempt finishes; incomplete downloads leave no completion marker. Successfully imported firmware lives under `/var`, so upgrades/rebases do not require downloading it again. Reboot if devices remain unavailable after import; a working Wi-Fi interface is never unloaded automatically.
+
+```bash
+sixpounder-t2-firmware status
+sudo sixpounder-t2-firmware retry
+journalctl -u sixpounder-t2-firmware.service -b
+```
+
+`retry` rechecks missing firmware; it does not redownload a complete installation. To import the **renamed** `firmware.tar` produced by the [T2 firmware guide](https://wiki.t2linux.org/guides/wifi-bluetooth/) instead:
+
+```bash
+sudo sixpounder-t2-firmware import /path/to/firmware.tar
+```
+
+The upstream mutable-system `get-apple-firmware.service` is masked. Firmware retrieval never installs packages at runtime or writes to `/usr`. Touch ID is not included. The Touch Bar uses the kernel's standard function/media keys; `tiny-dfr` customization is not enabled.
+
+### Fans, validation and rollback
+
+`t2fanrd` controls both fans with Omarchy's linear 55–75 °C curve. CoolerControl stays installed, but its daemon is masked and its system login autostart is hidden on T2 images so it does not compete with `t2fanrd`. Do not enable both fan managers at once.
+
+Build-time verification requires exactly one T2 kernel with matching headers and module packages, working T2/VirtualBox/xone module metadata, and an initramfs containing the T2 and keyboard drivers. The recovery unit tests cover firmware reuse, failed/interrupted downloads, successful retries, incomplete imports, and archive handling. Run them locally with:
+
+```bash
+python3 -m unittest discover -s tests -v
+./build-local.sh -r recipes/recipe-cosmic-t2.yml
+# Repeat with recipe-kde-t2.yml and recipe-gnome-t2.yml.
+```
+
+**Hardware validation is still pending.** A successful image build does not prove the Mac's peripherals work. On `MacBookPro15,1`/`15,3`, check boot, keyboard/trackpad, Touch Bar, camera, speaker/headphone/microphone audio, both fans, Wi-Fi/Bluetooth, Intel/AMD graphics, and suspend/resume. Suspend and AMD graphics have [model-dependent upstream limitations](https://wiki.t2linux.org/state/); apply GPU-specific workarounds only if the actual device needs them.
+
+Useful diagnostics:
+
+```bash
+uname -r
+rpm-ostree kargs
+systemctl status t2fanrd sixpounder-t2-firmware.timer
+journalctl -k -b --grep='t2bce|brcmfmac|hci_bcm|amdgpu'
+```
+
+To roll back, select the previous deployment in the boot menu, or run `sudo rpm-ostree rollback` and reboot. Persistent firmware remains in `/var`. Returning to an NVIDIA image may also require restoring any locally changed `/etc` fan/autostart settings, because Atomic preserves administrator changes across rebases.
 
 ## Post-install notes
 

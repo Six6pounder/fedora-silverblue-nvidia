@@ -1,0 +1,235 @@
+#!/usr/bin/python3
+"""Persist Apple firmware on Fedora Atomic without modifying /usr or APFS."""
+
+import argparse
+import contextlib
+import fcntl
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
+
+SYSFS = Path('/sys/bus/pci/devices')
+FIRMWARE = Path('/var/lib/firmware/brcm')
+STOCK_FIRMWARE = Path('/usr/lib/firmware/brcm')
+STATE = Path('/var/lib/sixpounder-t2')
+HELPERS = Path('/usr/libexec/sixpounder-t2')
+WIFI_CHIPS = {'0x43dc': '4355', '0x4464': '4364', '0x4488': '4377'}
+
+
+def run(*args, timeout=1200, capture=False, check=True):
+    return subprocess.run(args, check=check, timeout=timeout, text=True,
+                          stdout=subprocess.PIPE if capture else None)
+
+
+def hardware():
+    """Use PCI IDs rather than guessing from the model's year."""
+    t2, chips = False, set()
+    for device in SYSFS.glob('*'):
+        try:
+            vendor = (device / 'vendor').read_text().strip()
+            identifier = (device / 'device').read_text().strip()
+        except OSError:
+            continue
+        t2 |= vendor == '0x106b' and identifier in ('0x1801', '0x1802')
+        if vendor == '0x14e4' and identifier in WIFI_CHIPS:
+            chips.add(WIFI_CHIPS[identifier])
+    return t2, chips
+
+
+def complete(directory, chips):
+    """Stock generic Broadcom .bin files alone are insufficient on Apple Macs."""
+    if not chips:
+        return False
+    files = {p.name.lower().removesuffix('.xz').removesuffix('.zst')
+             for p in directory.glob('*') if p.is_file() and p.stat().st_size}
+    for chip in chips:
+        candidates = [name for name in files
+                      if name.startswith('brcmfmac' + chip) and 'apple' in name]
+        if not all(any(name.endswith('.' + ext) for name in candidates)
+                   for ext in ('bin', 'txt', 'clm_blob')):
+            return False
+        if chip == '4377' and not all(
+            any(name.startswith('brcmbt4377') and name.endswith('.' + ext) for name in files)
+            for ext in ('bin', 'ptb')
+        ):
+            return False
+    return True
+
+
+def unpack(archive, destination):
+    """The upstream renamer emits flat files and deduplicated hard links."""
+    with tarfile.open(archive) as bundle:
+        members = bundle.getmembers()
+        names = {entry.name for entry in members}
+        for entry in members:
+            if (Path(entry.name).name != entry.name or entry.name in ('.', '..')
+                    or not (entry.isfile() or entry.islnk())):
+                raise ValueError('Invalid firmware archive member: ' + entry.name)
+            if entry.islnk() and (Path(entry.linkname).name != entry.linkname
+                                  or entry.linkname not in names):
+                raise ValueError('Invalid firmware hard link: ' + entry.name)
+        bundle.extractall(destination, members=members, filter='data')
+
+
+def install_firmware(source, chips):
+    if not complete(source, chips):
+        raise RuntimeError('Extracted firmware is incomplete for this Mac; will retry')
+    FIRMWARE.mkdir(parents=True, exist_ok=True)
+    installed = []
+    # Replace each file atomically. No completion marker until every copy worked.
+    for firmware in sorted(source.iterdir()):
+        name = firmware.name.lower()
+        apple_wifi = any(name.startswith('brcmfmac' + chip) and 'apple' in name for chip in chips)
+        apple_bluetooth = '4377' in chips and name.startswith('brcmbt4377') and 'apple' in name
+        if not firmware.is_file() or not (apple_wifi or apple_bluetooth):
+            continue
+        fd, name = tempfile.mkstemp(prefix='.import-', dir=FIRMWARE)
+        os.close(fd)
+        temporary = Path(name)
+        try:
+            shutil.copyfile(firmware, temporary)
+            temporary.chmod(0o644)
+            temporary.replace(FIRMWARE / firmware.name)
+        finally:
+            temporary.unlink(missing_ok=True)
+        installed.append(firmware.name)
+    return installed
+
+
+@contextlib.contextmanager
+def mounted_image(image, partitioned=True):
+    """Mount read-only; never recursively remove a directory still mounted."""
+    mountpoint = Path(tempfile.mkdtemp(prefix='sixpounder-t2-mount-', dir='/run'))
+    loop, mounted = '', False
+    try:
+        loop = run('losetup', '--find', '--show', '--read-only', '--partscan',
+                   str(image), capture=True).stdout.strip()
+        run('udevadm', 'settle', timeout=60)
+        if partitioned:
+            data = json.loads(run('lsblk', '--json', '--paths', '--output',
+                                 'NAME,FSTYPE', loop, capture=True).stdout)
+            children = data['blockdevices'][0].get('children', [])
+            partition = next((p['name'] for p in children if p.get('fstype') == 'hfsplus'), None)
+            if not partition:
+                raise RuntimeError('No HFS+ recovery partition found')
+        else:
+            partition = loop
+        run('mount', '-t', 'hfsplus', '-o', 'ro', partition, str(mountpoint))
+        mounted = True
+        yield mountpoint
+    finally:
+        if mounted:
+            run('umount', str(mountpoint), timeout=60)
+        if loop:
+            run('losetup', '--detach', loop, timeout=60)
+        mountpoint.rmdir()
+
+
+def recover(work, chips):
+    # Explicit noninteractive action avoids upstream's interactive product menu.
+    # Board ID is the upstream Sonoma selection; no personal serial is sent.
+    run('python3', '-I', str(HELPERS / 'fetch-macOS.py'), '--action', 'download',
+        '--board-id', 'Mac-827FAC58A8FDFA22', '--mlb', '00000000000000000',
+        '--basename', 'BaseSystem', '--outdir', str(work))
+    image = work / 'recovery.img'
+    run('dmg2img', '-s', str(work / 'BaseSystem.dmg'), str(image))
+    archive = work / 'firmware.tar'
+    with mounted_image(image) as volume:
+        run(str(HELPERS / 'rename-firmware'), str(volume / 'usr/share/firmware'), str(archive))
+    staging = work / 'staging'
+    staging.mkdir()
+    unpack(archive, staging)
+    return install_firmware(staging, chips)
+
+
+def reload_missing_devices():
+    # Never unload a working Wi-Fi interface and interrupt the connection used
+    # for recovery. Existing interfaces can pick up the files on the next boot.
+    if not list(Path('/sys/class/net').glob('*/wireless')):
+        run('modprobe', '-r', 'brcmfmac_wcc', timeout=30, check=False)
+        run('modprobe', '-r', 'brcmfmac', timeout=30, check=False)
+        run('modprobe', 'brcmfmac', timeout=30, check=False)
+    if not list(Path('/sys/class/bluetooth').glob('hci*')):
+        run('modprobe', '-r', 'hci_bcm4377', timeout=30, check=False)
+        run('modprobe', 'hci_bcm4377', timeout=30, check=False)
+
+
+def ensure_firmware(chips, archive=None):
+    STATE.mkdir(parents=True, exist_ok=True)
+    with (STATE / 'lock').open('w') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print('Firmware recovery is already running')
+            return
+        if complete(FIRMWARE, chips) and archive is None:
+            print('Persistent Apple firmware is already available')
+            run('restorecon', '-RF', str(FIRMWARE), timeout=60)
+            # Firmware under /var is unavailable during early initramfs probing.
+            # Retry devices that failed then, even on subsequent boots.
+            reload_missing_devices()
+            return
+        marker = STATE / 'complete.json'
+        marker.unlink(missing_ok=True)
+        if archive is None and complete(STOCK_FIRMWARE, chips):
+            installed = install_firmware(STOCK_FIRMWARE, chips)
+            source = 'existing firmware'
+        else:
+            with tempfile.TemporaryDirectory(prefix='recovery-', dir=STATE) as temporary:
+                work = Path(temporary)
+                if archive is None:
+                    print('Recovering Apple firmware; connect Ethernet or USB tethering if needed', flush=True)
+                    installed = recover(work, chips)
+                    source = 'Apple recovery'
+                else:
+                    staging = work / 'staging'
+                    staging.mkdir()
+                    unpack(archive, staging)
+                    installed = install_firmware(staging, chips)
+                    source = 'local archive'
+        run('restorecon', '-RF', str(FIRMWARE), timeout=60)
+        temporary_marker = STATE / 'complete.tmp'
+        temporary_marker.write_text(json.dumps({'source': source, 'files': installed}) + '\n')
+        temporary_marker.replace(marker)
+        reload_missing_devices()
+        print('Apple firmware installed. Reboot if Wi-Fi/Bluetooth is still unavailable.')
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('action', nargs='?', default='status', choices=('status', 'auto', 'retry', 'import'))
+    parser.add_argument('archive', nargs='?', type=Path, help='renamed firmware.tar from the T2 Linux guide')
+    args = parser.parse_args()
+    if (args.action == 'import') != (args.archive is not None):
+        parser.error('import requires a firmware archive; other actions take no archive')
+    t2, chips = hardware()
+    if args.action == 'status':
+        print(f'T2 hardware: {t2}; Broadcom chips: {", ".join(sorted(chips)) or "none detected"}')
+        print(f'Persistent firmware: {"ready" if complete(FIRMWARE, chips) else "missing/incomplete"}')
+        print(f'Existing system firmware: {"ready" if complete(STOCK_FIRMWARE, chips) else "missing/incomplete"}')
+        return 0
+    if not t2:
+        print('No T2 hardware detected; skipping firmware recovery')
+        return 0
+    if not chips:
+        raise RuntimeError('No supported Broadcom device detected; firmware recovery skipped')
+    if os.geteuid() != 0:
+        raise PermissionError('Run this action with sudo')
+    ensure_firmware(chips, args.archive)
+    return 0
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (OSError, ValueError, RuntimeError, tarfile.TarError, subprocess.SubprocessError) as error:
+        print(f'Firmware recovery failed: {error}. Will retry; see journalctl -u sixpounder-t2-firmware.', file=sys.stderr)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print('Firmware recovery interrupted; will retry', file=sys.stderr)
+        sys.exit(1)

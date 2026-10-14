@@ -1,0 +1,29 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/module-list-v1.json
+# Runs after common.yml and desktop-specific additions.
+modules:
+  - type: script
+    scripts:
+      - setup-t2.sh
+  - type: systemd
+    system:
+      masked:
+        - coolercontrold.service
+        - get-apple-firmware.service
+      enabled:
+        - t2fanrd.service
+        - sixpounder-t2-firmware.timer
+  - type: kargs
+    arch: x86_64
+    kargs:
+      - intel_iommu=on
+      - iommu=pt
+      - pm_async=off
+      - mem_sleep_default=deep
+      # firmware_class.path is already supplied by common.yml's xone TOML.
+  - type: initramfs
+    env:
+      DRACUT_NO_XATTR: '1'
+  - type: script
+    scripts:
+      - verify-t2.sh

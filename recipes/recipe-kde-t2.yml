@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+name: sixpounder-kde-t2
+description: Fedora Atomic KDE for Intel Macs with T2 hardware support.
+base-image: ghcr.io/blue-build/base-images/fedora-kinoite
+image-version: 44
+platforms:
+  - linux/amd64
+modules:
+  - from-file: t2-pre.yml
+  - from-file: common.yml
+  - from-file: t2-post.yml

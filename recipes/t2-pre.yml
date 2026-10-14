@@ -1,0 +1,11 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/module-list-v1.json
+# Must precede common.yml: VirtualBox and xone need the final kernel ABI.
+modules:
+  - type: files
+    files:
+      - source: t2
+        destination: /
+  - type: script
+    scripts:
+      - install-t2.sh

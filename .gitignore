@@ -3,3 +3,4 @@ cosign.private
 /Containerfile
 /.build-cache/
 /.bluebuild-scripts_*
+__pycache__/

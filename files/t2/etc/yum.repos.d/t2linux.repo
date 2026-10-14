@@ -1,0 +1,9 @@
+[copr:copr.fedorainfracloud.org:sharpenedblade:t2linux]
+name=T2 Linux Fedora hardware support
+baseurl=https://download.copr.fedorainfracloud.org/results/sharpenedblade/t2linux/fedora-$releasever-$basearch/
+enabled=1
+skip_if_unavailable=False
+gpgcheck=1
+gpgkey=https://download.copr.fedorainfracloud.org/results/sharpenedblade/t2linux/pubkey.gpg
+repo_gpgcheck=0
+priority=80

@@ -1,10 +1,10 @@
 ---
 # yaml-language-server: $schema=https://schema.blue-build.org/module-list-v1.json
 #
-# Everything shared by all three desktop variants (COSMIC, KDE Plasma, GNOME).
+# Everything shared by all six desktop/hardware variants (COSMIC, KDE, GNOME).
 # The per-DE recipes are thin: they set name/description/base-image and pull
 # this file in with `from-file: common.yml`. Anything added here lands in all
-# three images, so switching desktops never means losing tooling.
+# six images, so switching desktops never means losing tooling.
 #
 # Only put something in a per-DE recipe if it genuinely differs by desktop.
 modules:

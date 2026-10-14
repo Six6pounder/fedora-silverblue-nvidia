@@ -25,6 +25,13 @@ install_kernel_devel() {
     return 0
   fi
 
+  # T2 kernels are built by COPR, not Fedora Koji. Never substitute stock
+  # headers (or attempt the unsigned Koji fallback) for this kernel ABI.
+  if [[ "${kv}" == *.t2.fc* ]]; then
+    echo "ERROR: matching T2 headers for ${kv} are unavailable in COPR" >&2
+    return 1
+  fi
+
   echo "kernel-devel ${kv} is not in the enabled repos; falling back to Koji"
 
   # 7.1.4-200.fc44.x86_64 -> version 7.1.4, release 200.fc44, arch x86_64

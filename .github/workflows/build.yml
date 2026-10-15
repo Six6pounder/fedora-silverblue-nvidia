@@ -21,7 +21,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check shell syntax
         run: bash -n files/scripts/install-t2.sh files/scripts/setup-t2.sh files/scripts/verify-t2.sh files/scripts/lib-kernel-devel.sh
       - name: Test firmware recovery lifecycle
